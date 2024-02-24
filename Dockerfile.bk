@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM docker.io/alpine:latest
 
 RUN apk update
 RUN apk --update-cache add \
@@ -6,16 +6,18 @@ RUN apk --update-cache add \
     cmake \
     make \
     g++ \
+    nlohmann-json \
+    postgresql-dev \
     boost-dev \
     expat-dev \
     bzip2-dev \
     zlib-dev \
     libpq \
-    nlohmann-json \
     proj-dev \
     lua5.3-dev \
-    postgresql-dev \
-    luajit-dev
+    luajit-dev \
+    potrace-dev \
+    opencv-dev
 
 RUN git clone -b {{ tag }} https://github.com/osm2pgsql-dev/osm2pgsql.git
 WORKDIR osm2pgsql
@@ -26,13 +28,13 @@ RUN cmake -D WITH_LUAJIT=ON ..
 RUN make
 # RUN make man
 RUN make install
-# RUN make install-gen
+RUN make install-gen
 
 LABEL org.opencontainers.image.created="{{ created }}" \
       org.opencontainers.image.authors="Isaac Boates <iboates@gmail.com>" \
-      org.opencontainers.image.url="TODO" \
-      org.opencontainers.image.documentation="TODO" \
-      org.opencontainers.image.source="TODO" \
+      org.opencontainers.image.url="https://github.com/iboates/osm2pgsql-docker" \
+      org.opencontainers.image.documentation="https://github.com/iboates/osm2pgsql-docker" \
+      org.opencontainers.image.source="https://github.com/iboates/osm2pgsql-docker" \
       org.opencontainers.image.version="{{ version }}" \
       org.opencontainers.image.licenses="GPL-2.0" \
       org.opencontainers.image.title="osm2pgsql" \

@@ -24,13 +24,13 @@ do
 
   # Create a temporary Dockerfile with version and timestamp replaced
   TEMP_DOCKERFILE="Dockerfile.$VERSION"
-  cp docker/Dockerfile "$TEMP_DOCKERFILE"
+  cp dockerfiles/Dockerfile "$TEMP_DOCKERFILE"
   sed -i "s/{{ version }}/$VERSION/g" "$TEMP_DOCKERFILE"
   sed -i "s/{{ tag }}/$TAG/g" "$TEMP_DOCKERFILE"
   sed -i "s/{{ created }}/$CREATED/g" "$TEMP_DOCKERFILE"
 
   # Build the Docker image with the current version tag using the temporary Dockerfile
-  docker build --build-arg VERSION=$VERSION --build-arg TAG=$TAG -t osm2pgsql:$VERSION -f "$TEMP_DOCKERFILE" .
+  dockerfiles build --build-arg VERSION=$VERSION --build-arg TAG=$TAG -t osm2pgsql:$VERSION -f "$TEMP_DOCKERFILE" .
 
   if [ $? -eq 0 ]; then
     echo "Successfully built osm2pgsql:$VERSION"
@@ -46,7 +46,7 @@ done
 # If "latest" was specified, tag the highest version as latest
 if [ ! -z "$LATEST_TAG" ]; then
   echo "Tagging highest version $HIGHEST_VERSION as latest..."
-  docker tag osm2pgsql:$HIGHEST_VERSION osm2pgsql:latest
+  dockerfiles tag osm2pgsql:$HIGHEST_VERSION osm2pgsql:latest
 fi
 
 echo "All versions built successfully."
