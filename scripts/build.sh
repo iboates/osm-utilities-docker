@@ -16,10 +16,11 @@ for VERSION in "$@"
 do
 
   echo "Building Docker image for version: $VERSION"
+  CREATED=$(create_timestamp)
 
   # Create a temporary Dockerfile with version and timestamp replaced
   TEMP_DOCKERFILE="Dockerfile.$VERSION"
-  cp dockerfiles/$VERSION/Dockerfile "$TEMP_DOCKERFILE"
+  cp ../dockerfiles/$VERSION/Dockerfile "$TEMP_DOCKERFILE"
   sed -i "s/{{ created }}/$CREATED/g" "$TEMP_DOCKERFILE"
 
   # Build the Docker image with the current version tag using the temporary Dockerfile
@@ -30,10 +31,7 @@ do
   else
     echo "Failed to build osm2pgsql:$VERSION"
     rm "$TEMP_DOCKERFILE" # Remove temporary Dockerfile if build fails
-    exit 1
   fi
 
   rm "$TEMP_DOCKERFILE" # Remove temporary Dockerfile after successful build
 done
-
-echo "All versions built successfully."
