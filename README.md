@@ -12,7 +12,7 @@ one deficiency:
 - Had not been updated in several years
 
 So at the [OSM Hackathon at Geofabrik in Karlsruhe on 24.02 - 25.02](https://wiki.openstreetmap.org/wiki/Karlsruhe_Hack_Weekend_February_2024),
-I resolved to build a comprehensive set of minial images that contain only osm2pgsql, built with the official
+I resolved to build a comprehensive set of minimal images that contain only osm2pgsql, built with the official
 instructions from the source repo.
 
 I also took the additional step of identifying which dependencies were only necessary at build-time and removing them
