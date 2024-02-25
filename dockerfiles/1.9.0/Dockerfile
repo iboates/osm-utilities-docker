@@ -16,7 +16,6 @@ RUN apk --no-cache add \
     lua5.3-dev \
     luajit-dev
 
-
 RUN git clone -b 1.9.0 https://github.com/osm2pgsql-dev/osm2pgsql.git
 WORKDIR osm2pgsql
 

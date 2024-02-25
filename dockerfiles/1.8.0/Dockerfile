@@ -19,6 +19,11 @@ RUN apk --no-cache add \
 RUN git clone -b 1.8.0 https://github.com/osm2pgsql-dev/osm2pgsql.git
 WORKDIR osm2pgsql
 
+# for some inscrutable reason, compilation fails due to a missing #include statement in versions 1.8.0 and 1.8.1, and
+# ONLY in those versions. Slipping this line in here seems to fix the issue. # For a more detailed explanation, see the
+# file "about_that_awk_statement.txt".
+RUN awk '/^#include/ && !added { print "#include <cstdint>"; added=1 } {print}' src/flex-index.hpp > src/flex-index.hpp.tmp && mv src/flex-index.hpp.tmp src/flex-index.hpp
+
 RUN mkdir build
 WORKDIR build
 RUN cmake -D WITH_LUAJIT=ON ..

@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+
+  postgis:
+    image: postgis/postgis:latest
+    environment:
+      POSTGRES_DB: o2p
+      POSTGRES_USER: o2p
+      POSTGRES_PASSWORD: o2p
+    volumes:
+      - postgis_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  osm2pgsql:
+    image: osm2pgsql:{{ version }}
+    environment:
+      PGPASSWORD: o2p
+
+volumes:
+  postgis_data:

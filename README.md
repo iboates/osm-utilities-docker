@@ -33,7 +33,7 @@ The below example assumes you already have a PostGIS instance running on localho
 
 ```sh
 wget -O data.pbf https://download.geofabrik.de/europe/andorra-latest.osm.pbf
-docker run -v $(pwd):/data -e PGPASSWORD=<your password> --network="host" osm2pgsql:latest \
+docker run -v $(pwd):/data -e PGPASSWORD=<your password> --network="host" iboates/osm2pgsql:latest \
  -d o2p \
  -U o2p \
  -H 127.0.0.1 \
@@ -56,7 +56,7 @@ The below example shows how to do an import with a custom style file
 
 ```sh
 wget -O data.pbf https://download.geofabrik.de/europe/andorra-latest.osm.pbf
-docker run -v $(pwd):/data -e PGPASSWORD=<your password> --network="host" osm2pgsql:latest \
+docker run -v $(pwd):/data -e PGPASSWORD=<your password> --network="host" iboates/osm2pgsql:latest \
  -d o2p \
  -U o2p \
  -H 127.0.0.1 \
@@ -117,7 +117,7 @@ wget -O data.pbf https://download.geofabrik.de/europe/andorra-latest.osm.pbf
 docker compose run -v $(pwd):/data osm2pgsql \
  -d o2p \
  -U o2p \
- -H 127.0.0.1 \
+ -H postgis \
  -P 5432 \
  /data/data.pbf
 ```

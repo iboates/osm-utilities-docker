@@ -11,7 +11,7 @@ do
     docker push iboates/osm2pgsql:$VERSION > /dev/null
     echo -e "$VERSION: \033[32mPUSHED\033[0m"
   else
-    echo -e "$VERSION: \033[32mTEST FAILED, NOT PUSHING\033[0m"
+    echo -e "$VERSION: \033[31mTEST FAILED, NOT PUSHING\033[0m"
   fi
 done
 
