@@ -15,9 +15,6 @@ So at the [OSM Hackathon at Geofabrik in Karlsruhe on 24.02 - 25.02](https://wik
 I resolved to build a comprehensive set of minimal images that contain only osm2pgsql, built with the official
 instructions from the source repo.
 
-I also took the additional step of identifying which dependencies were only necessary at build-time and removing them
-from the final image for maximum minimalism.
-
 ## Use
 
 ### Quick start
@@ -138,6 +135,14 @@ Verify that the import was successful:
 ```sql
 SELECT osm_id FROM planet_osm_point LIMIT 1;
 ```
+
+## The `-gen` tags
+
+Since version 1.9.0 there has been experimental support for cartographic generalization. This requires the `potrace-dev`
+and `opencv-dev` dependencies, which contributes a lot to image bloat (~2GB). There are plans to more precisely isolate
+the specific dependencies that are required for runtime only, which should reduce the size of all images, not just the
+`-gen` ones. But until then, if you want to use these experimental cartographic generalization, you will have to pull
+the corresponding `-gen` tag and deal with the additional bloat
 
 ## Credits
 
