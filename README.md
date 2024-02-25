@@ -138,7 +138,7 @@ SELECT osm_id FROM planet_osm_point LIMIT 1;
 
 ## The `-gen` tags
 
-Since version 1.9.0 there has been experimental support for cartographic generalization. This requires the `potrace-dev`
+Since version 1.10.0 there has been experimental support for cartographic generalization. This requires the `potrace-dev`
 and `opencv-dev` dependencies, which contributes a lot to image bloat (~2GB). There are plans to more precisely isolate
 the specific dependencies that are required for runtime only, which should reduce the size of all images, not just the
 `-gen` ones. But until then, if you want to use these experimental cartographic generalization, you will have to pull
