@@ -51,35 +51,35 @@ RUN apk --update-cache add \
 #    nghttp2-libs \
 #    libcurl \
     libexpat \
-    pcre2 \
+##    pcre2 \
     git \
-    libacl \
+#    libacl \
     libbz2 \
-    lz4-libs \
+#    lz4-libs \
     xz-libs \
-    zstd-libs \
+#    zstd-libs \
     libarchive \
-    libgcc \
+#    libgcc \
     rhash-libs \
-    libstdc++ \
+#    libstdc++ \
     libuv \
-    cmake \
+#    cmake \
     make \
-    libstdc++-dev \
+#    libstdc++-dev \
     jansson \
-    binutils \
+#    binutils \
     libgomp \
-    libatomic \
+#    libatomic \
     gmp \
-    isl26 \
+#    isl26 \
     mpfr4 \
-    mpc1 \
+#    mpc1 \
     gcc \
-    musl-dev \
+#    musl-dev \
     libc-dev \
-    g++ \
+#    g++ \
     pkgconf \
-    nlohmann-json \
+#    nlohmann-json \
     libpq \
     openssl-dev \
     libpq-dev \
