@@ -11,7 +11,7 @@ def punch_out(file_path, line_num):
         for i, line in enumerate(lines):
             if i == line_num:
                 print(f"punching out line {i}: `{line}`")
-                file.write(f"#{line}" + '\n')
+                file.write(f"#{line}")
             else:
                 file.write(line)
 
@@ -29,6 +29,7 @@ def punch_in(file_path, line_num):
             else:
                 file.write(line)
 
+ok_text = "osm2pgsql -- Import OpenStreetMap data into a PostgreSQL/PostGIS database"
 
 client = docker.from_env()
 
@@ -64,18 +65,9 @@ with open(dockerfile_path, 'r') as file:
             break
 
 
-stop = False
-i = 0
 for i in tqdm(range(start_line+1, end_line), total=end_line-start_line):
     punch_out("Dockerfile", i)
-
     image, build_logs = client.images.build(path=path_to_dockerfile, tag=f"{image_name}:{image_tag}", rm=True)
-
-    # Optionally, print build logs
-    for line in build_logs:
-        if 'stream' in line:
-            print(line['stream'].strip())
-
-    break
-
-    # Execute the Docker build command
+    run_result = client.containers.run("osm2pgsql:dev", "--help", stdout=True, stderr=True).decode("utf-8")
+    if ok_text not in run_result:
+        punch_in("Dockerfile", i)

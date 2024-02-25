@@ -44,13 +44,12 @@ RUN apk update
 RUN apk --update-cache add \
 # START PUNCHOUT
 #    ca-certificates \
-
-    brotli-libs \
-    c-ares \
-    libunistring \
-    libidn2 \
-    nghttp2-libs \
-    libcurl \
+#    brotli-libs \
+#    c-ares \
+#    libunistring \
+#    libidn2 \
+#    nghttp2-libs \
+#    libcurl \
     libexpat \
     pcre2 \
     git \
