@@ -2,6 +2,9 @@
 
 Pre-built, minimalist Docker images for running [osm2pgsql](https://github.com/osm2pgsql-dev/osm2pgsql)
 
+The size might not be as minimal as it could be, work needs to be done to isolate runtime dependencies from build
+dependencies to make the final images slimmer.
+
 ## Why
 
 There are indeed several osm2pgsql docker images floating around on dockerhub, but I found that they all had at least
@@ -146,5 +149,6 @@ the corresponding `-gen` tag and deal with the additional bloat
 
 ## Credits
 
-These images were built by Isaac Boates at the [OSM Hackathon at Geofabrik in Karlsruhe on 24.02 - 25.02](https://wiki.openstreetmap.org/wiki/Karlsruhe_Hack_Weekend_February_2024)
+* These images were built by Isaac Boates at the [OSM Hackathon at Geofabrik in Karlsruhe on 24.02 - 25.02](https://wiki.openstreetmap.org/wiki/Karlsruhe_Hack_Weekend_February_2024)
 with help from the authors and other attendees
+* `osmium` is primarily maintained by [Jochen Topf](https://www.jochentopf.com/de/)
