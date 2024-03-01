@@ -43,7 +43,7 @@ ok_text = "osm2pgsql -- Import OpenStreetMap data into a PostgreSQL/PostGIS data
 
 client = docker.from_env()
 
-path_to_dockerfile = '.'
+path_to_dockerfile = '..'
 
 # Image name and tag
 image_name = "osm2pgsql"
