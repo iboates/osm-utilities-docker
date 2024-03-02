@@ -1,13 +1,26 @@
 FROM docker.io/alpine:latest
 
 RUN apk add --no-cache \
+    git \
     expat \
     expat-dev \
     boost-dev \
     boost-program_options \
-    postgresql-dev
+    postgresql-dev \
+    cmake \
+    make \
+    g++
 
-RUN git clone -b 2.3.0 https://github.com/pgRouting/osm2pgrouting.git
+# libqxx is not available on apk, must build from source
+# for osm2pgrouting v2.3.7 and earlier, it is necessary to use libpqxx v6
+RUN git clone -b 6.4.8 https://github.com/jtv/libpqxx.git
+WORKDIR libpqxx
+RUN cmake . -DCMAKE_INSTALL_PREFIX=/usr -DSKIP_BUILD_TEST=ON
+RUN make
+RUN make install
+WORKDIR ..
+
+RUN git clone -b v2.3.0 https://github.com/pgRouting/osm2pgrouting.git
 WORKDIR osm2pgrouting
 
 RUN cmake -H. -Bbuild
@@ -27,4 +40,4 @@ LABEL org.opencontainers.image.created="{{ created }}" \
 
 ENTRYPOINT ["osm2pgrouting"]
 
-CMD ["-h"]
+CMD ["--help"]
