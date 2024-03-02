@@ -20,6 +20,25 @@ instructions from the source repo.
 
 ## Use
 
+### First off
+
+It's important to realize that this image actually bundles both `osm2pgsql` (the main application), as well as the
+accompanying Python-based script (`osm2pgsql-replication`) [(script)](https://github.com/osm2pgsql-dev/osm2pgsql/blob/master/scripts/osm2pgsql-replication)
+[(manual)](https://osm2pgsql.org/doc/man/osm2pgsql-replication-1.6.0.html). When one normally installs `osm2pgsql`,
+`osm2pgsql-replication` is bundled alongside it and executed with the command `osm2pgsql-replication [args]`. It's hard
+to tell where one of these applications really "begins" or "ends", so they are bundled into the same image, but are
+executed separately as follows:
+
+To use `osm2pgsql` normally, you can execute one of:
+
+* `docker run iboates/osm2pgsql:latest [args]`
+* `docker run iboates/osm2pgsql:latest osm2pgsql [args]`
+
+To use `osm2pgsql-replication`, you can execute one of:
+
+* `docker run iboates/osm2pgsql:latest replication [args]`
+* `docker run iboates/osm2pgsql:latest osm2pgsql-replication [args]`
+
 ### Quick start
 
 The below example will pull the latest image and run it with no command (prints helpdocs).

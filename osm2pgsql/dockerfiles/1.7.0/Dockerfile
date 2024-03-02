@@ -1,4 +1,4 @@
-FROM docker.io/alpine:latest as builder
+FROM docker.io/python:3.8-alpine
 
 RUN apk --no-cache add \
     git \
@@ -25,6 +25,14 @@ RUN cmake -D WITH_LUAJIT=ON ..
 RUN make
 RUN make install
 
+RUN apk add --no-cache python3 py3-pip
+RUN python3 -m venv /venv
+ENV PATH="/venv/bin:$PATH"
+RUN pip install osmium psycopg2
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 LABEL org.opencontainers.image.created="{{ created }}" \
       org.opencontainers.image.authors="Isaac Boates <iboates@gmail.com>" \
       org.opencontainers.image.url="https://github.com/iboates/osm2pgsql-docker" \
@@ -35,7 +43,4 @@ LABEL org.opencontainers.image.created="{{ created }}" \
       org.opencontainers.image.title="osm2pgsql" \
       org.opencontainers.image.description="osm2pgsql is a tool for loading OpenStreetMap data into a PostgreSQL / PostGIS database suitable for applications like rendering into a map, geocoding with Nominatim, or general analysis."
 
-
-ENTRYPOINT ["osm2pgsql"]
-
-CMD ["-h"]
+ENTRYPOINT ["/entrypoint.sh"]
