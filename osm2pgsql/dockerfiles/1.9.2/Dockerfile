@@ -15,6 +15,7 @@ RUN apk --no-cache add \
     proj-dev \
     lua5.3-dev \
     luajit-dev \
+    potrace-dev \
     opencv-dev
 
 RUN git clone -b 1.9.2 https://github.com/osm2pgsql-dev/osm2pgsql.git

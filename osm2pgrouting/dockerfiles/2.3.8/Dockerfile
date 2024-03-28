@@ -27,6 +27,10 @@ WORKDIR build/
 RUN make
 RUN make install
 
+# expected location of default map config XML files
+RUN mkdir /usr/share/osm2pgrouting
+RUN cp ../*.xml /usr/share/osm2pgrouting
+
 LABEL org.opencontainers.image.created="{{ created }}" \
       org.opencontainers.image.authors="Isaac Boates <iboates@gmail.com>" \
       org.opencontainers.image.url="https://github.com/iboates/osm2pgsql-docker" \

@@ -3,7 +3,7 @@ version: '3.8'
 services:
 
   postgis:
-    image: postgis/postgis:latest
+    image: pgrouting/pgrouting:latest
     environment:
       POSTGRES_DB: o2p
       POSTGRES_USER: o2p
@@ -13,10 +13,8 @@ services:
     ports:
       - "5432:5432"
 
-  osm2pgsql:
-    image: osm2pgsql:{{ version }}
-    environment:
-      PGPASSWORD: o2p
+  osm2pgrouting:
+    image: osm2pgrouting:{{ version }}
 
 volumes:
   postgis_data:

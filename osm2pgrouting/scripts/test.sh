@@ -13,7 +13,8 @@ done
 
 # If deep mode is enabled, download the file
 if $deep_mode; then
-  wget -O data.pbf https://download.geofabrik.de/europe/andorra-latest.osm.pbf  > /dev/null 2>&1
+  wget -O data.pbf https://download.geofabrik.de/europe/andorra-latest.osm.bz2  > /dev/null 2>&1
+  bzip2 -d data.osm.bz2
 fi
 
 # Remaining arguments are considered version numbers
@@ -35,7 +36,7 @@ for VERSION in "$@"; do
         output=$(docker compose -f docker-compose.yaml.tmp exec postgis \
                 psql \
                 -U o2p \
-                -c "select count(*) from planet_osm_point limit 1")
+                -c "select count(*) from edges limit 1")
 
         # Extract the count value from the output
         count=$(echo "$output" | grep -o '[0-9]\+' | head -n 1) # Use head -n 1 to ensure we only get the first match
