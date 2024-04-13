@@ -51,6 +51,7 @@ RUN apk --no-cache add \
     lz4-libs
 
 COPY --from=builder /usr/local/bin/osm2pgsql* /usr/local/bin/
+COPY --from=builder /usr/local/share/osm2pgsql/*.style /usr/local/share/osm2pgsql/
 
 COPY --from=builder /venv /venv
 ENV PATH="/venv/bin:$PATH"
