@@ -39,10 +39,9 @@ jobs:
 
       - name: build
         run: |
-          cd osm2pgsql
-          cd scripts
-          ./build.sh $(for d in $(ls -d ./osm2pgsql/dockerfiles/*/ | sort -t '.' -k 1,1n -k 2,2n -k 3,3n); do basename "$d"; done | tr '\n' ' ');
-          ./push.sh $(ls -d ./osm2pgsql/dockerfiles/*/ | sort -t '.' -k 1,1n -k 2,2n -k 3,3n); do basename "$d"; done | tr '\n' ' ');
+          cd osm2pgsql/scripts
+          ./build.sh $(for d in $(ls -d ../dockerfiles/*/ | sort -t '.' -k 1,1n -k 2,2n -k 3,3n); do basename "$d"; done | tr '\n' ' ')
+          ./push.sh $(for d in $(ls -d ../dockerfiles/*/ | sort -t '.' -k 1,1n -k 2,2n -k 3,3n); do basename "$d"; done | tr '\n' ' ')
         shell: bash
 
 
