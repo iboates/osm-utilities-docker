@@ -6,8 +6,7 @@
 # GitHub recommends pinning actions to a commit SHA.
 # To get a newer version, you will need to update the SHA.
 # You can also reference a tag or branch, but the action may change without warning.
-
-name: Publish osm2pgsql to Dockerhub
+name: Publish osmium to Dockerhub
 
 on:
   schedule:
@@ -37,11 +36,11 @@ jobs:
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: iboates/osm2pgsql
+          images: iboates/osmium
 
       - name: build
         run: |
-          cd osm2pgsql/scripts
+          cd osmium/scripts
           ./build.sh $(for d in $(ls -d ../dockerfiles/*/ | sort -t '.' -k 1,1n -k 2,2n -k 3,3n); do basename "$d"; done | tr '\n' ' ')
           ./push.sh $(for d in $(ls -d ../dockerfiles/*/ | sort -t '.' -k 1,1n -k 2,2n -k 3,3n); do basename "$d"; done | tr '\n' ' ')
         shell: bash
