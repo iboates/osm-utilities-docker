@@ -48,9 +48,9 @@ jobs:
 
       - name: build
         run: |
-          cd osm2pgsql;
-          cd scripts;
+          cd osm2pgsql
+          cd scripts
           ./build.sh 1.10.0
           ./push.sh 1.10.0
         shell: bash
-        working-directory: build
+
