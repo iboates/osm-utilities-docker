@@ -7,9 +7,11 @@
 # To get a newer version, you will need to update the SHA.
 # You can also reference a tag or branch, but the action may change without warning.
 
-name: Publish Docker image
+name: Publish osm2pgsql to Dockerhub
 
 on:
+  schedule:
+    - cron: '0 0 * * *'  # every day at midnight
   push:
     branches:
       - 'master'
@@ -37,11 +39,11 @@ jobs:
         with:
           images: iboates/osm2pgsql
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
-        with:
-          context: ./osm2pgsql/scripts
-          file: ./osm2pgsql/dockerfiles/1.10.0/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      - name: build
+        run: |
+          cd osm2pgsql/scripts
+          ./build.sh $(for d in $(ls -d ../dockerfiles/*/ | sort -t '.' -k 1,1n -k 2,2n -k 3,3n); do basename "$d"; done | tr '\n' ' ')
+          ./push.sh $(for d in $(ls -d ../dockerfiles/*/ | sort -t '.' -k 1,1n -k 2,2n -k 3,3n); do basename "$d"; done | tr '\n' ' ')
+        shell: bash
+
+
