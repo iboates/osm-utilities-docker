@@ -11,6 +11,8 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 
+wget -O data.pbf https://download.geofabrik.de/europe/andorra-latest.osm.pbf
+
 LARGEST_VERSION=$(basename $(ls -d ../dockerfiles/*/ | sort -V | tail -n 1))
 
 # Loop through each version code to build the images
