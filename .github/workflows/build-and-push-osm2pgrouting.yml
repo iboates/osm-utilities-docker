@@ -40,5 +40,5 @@ jobs:
       - name: build
         run: |
           cd osm2pgrouting/scripts
-         ./nightly_build_and_push.sh $(for d in $(ls -d ../dockerfiles/*/ | sort -V); do basename "$d"; done | tr '\n' ' ')
+        #  ./nightly_build_and_push.sh $(for d in $(ls -d ../dockerfiles/*/ | sort -V); do basename "$d"; done | tr '\n' ' ')
         shell: bash
