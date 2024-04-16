@@ -1,4 +1,4 @@
-FROM docker.io/alpine:latest as builder
+FROM docker.io/alpine:latest AS builder
 
 RUN apk --no-cache add \
     git \
@@ -24,6 +24,28 @@ WORKDIR build
 RUN cmake -D WITH_LUAJIT=ON ..
 RUN make
 RUN make install
+
+FROM docker.io/python:3.8-alpine
+
+RUN apk --no-cache add \
+    nlohmann-json \
+    boost \
+    expat \
+    bzip2 \
+    zlib \
+    libpq \
+    proj \
+    lua5.3 \
+    luajit \
+    potrace \
+    opencv \
+    lz4-libs
+
+COPY --from=builder /usr/local/bin/osm2pgsql* /usr/local/bin/
+COPY --from=builder /usr/local/share/osm2pgsql/*.style /usr/local/share/osm2pgsql/
+
+COPY --from=builder /venv /venv
+ENV PATH="/venv/bin:$PATH"
 
 LABEL org.opencontainers.image.created="{{ created }}" \
       org.opencontainers.image.authors="Isaac Boates <iboates@gmail.com>" \

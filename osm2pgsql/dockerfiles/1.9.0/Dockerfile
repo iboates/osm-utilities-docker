@@ -1,4 +1,4 @@
-FROM docker.io/python:3.8-alpine
+FROM docker.io/python:3.8-alpine AS builder
 
 RUN apk --no-cache add \
     git \
