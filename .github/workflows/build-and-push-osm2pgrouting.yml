@@ -10,12 +10,8 @@
 name: Publish nightly osm2pgrouting to Dockerhub
 
 on:
-  push:
-    branches:
-      - 'master'
-  pull_request:
-    branches:
-      - 'master'
+  schedule:
+    - cron: '0 0 * * *'  # every day at midnight
 
 jobs:
   push_to_registry:

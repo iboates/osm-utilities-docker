@@ -11,12 +11,6 @@ name: Publish osmium to Dockerhub
 on:
   schedule:
     - cron: '0 0 * * *'  # every day at midnight
-  push:
-    branches:
-      - 'master'
-  pull_request:
-    branches:
-      - 'master'
 
 jobs:
   push_to_registry:
@@ -41,7 +35,7 @@ jobs:
       - name: build
         run: |
           cd osmium/scripts
-          ./nightly_build_and_push.sh $(for d in $(ls -d ../dockerfiles/*/ | sort -t '.' -k 1,1n -k 2,2n -k 3,3n); do basename "$d"; done | tr '\n' ' ')
+          ./nightly_build_and_push.sh $(for d in $(ls -d ../dockerfiles/*/ | sort -V); do basename "$d"; done | tr '\n' ' ')
         shell: bash
 
 

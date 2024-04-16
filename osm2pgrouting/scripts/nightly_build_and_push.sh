@@ -11,7 +11,8 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 
-wget -O data.pbf https://download.geofabrik.de/europe/andorra-latest.osm.pbf
+wget -O data.osm.bz2 https://download.geofabrik.de/europe/andorra-latest.osm.bz2
+bzip2 -d data.osm.bz2
 
 LARGEST_VERSION=$(basename $(ls -d ../dockerfiles/*/ | sort -V | tail -n 1))
 
@@ -44,12 +45,13 @@ do
       sed -i "s/{{ version }}/$VERSION/g" docker-compose.yaml.tmp
       docker compose -f docker-compose.yaml.tmp up -d
       sleep 10
-      docker compose -f docker-compose.yaml.tmp run -v "$(pwd)":/data osm2pgrouting \
+      docker compose -f docker-compose.yaml.tmp run -v "$(pwd)":/data multiple primary keys \
         -d o2p \
         -U o2p \
-        -H postgis \
-        -P 5432 \
-        /data/data.pbf
+        -h postgis \
+        -p 5432 \
+        -W o2p \
+        -f /data/data.osm
 
         output=$(docker compose -f docker-compose.yaml.tmp exec postgis \
                 psql \

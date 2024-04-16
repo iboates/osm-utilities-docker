@@ -28,9 +28,10 @@ for VERSION in "$@"; do
       docker compose -f docker-compose.yaml.tmp run -v "$(pwd)":/data osm2pgrouting \
         -d o2p \
         -U o2p \
-        -H postgis \
-        -P 5432 \
-        /data/data.pbf > /dev/null 2>&1
+        -h postgis \
+        -p 5432 \
+        -W o2p \
+        -f /data/data.osm
 
                 # Correctly capture the output without redirecting it to /dev/null
         output=$(docker compose -f docker-compose.yaml.tmp exec postgis \
