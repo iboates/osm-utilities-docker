@@ -41,8 +41,7 @@ jobs:
       - name: build
         run: |
           cd osmium/scripts
-        #  ./build.sh $(for d in $(ls -d ../dockerfiles/*/ | sort -t '.' -k 1,1n -k 2,2n -k 3,3n); do basename "$d"; done | tr '\n' ' ')
-        #  ./push.sh $(for d in $(ls -d ../dockerfiles/*/ | sort -t '.' -k 1,1n -k 2,2n -k 3,3n); do basename "$d"; done | tr '\n' ' ')
+          ./nightly_build_and_push.sh $(for d in $(ls -d ../dockerfiles/*/ | sort -t '.' -k 1,1n -k 2,2n -k 3,3n); do basename "$d"; done | tr '\n' ' ')
         shell: bash
 
 

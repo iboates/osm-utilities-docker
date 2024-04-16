@@ -26,12 +26,12 @@ do
   sed -i "s/{{ created }}/$CREATED/g" "$TEMP_DOCKERFILE"
 
   # Build the Docker image with the current version tag using the temporary Dockerfile
-  docker build --build-arg VERSION=$VERSION --build-arg TAG=$TAG -t osm2pgsql:$VERSION -f "$TEMP_DOCKERFILE" .
+  docker build --build-arg VERSION=$VERSION --build-arg TAG=$TAG -t osm2pgrouting:$VERSION -f "$TEMP_DOCKERFILE" .
 
   if [ $? -eq 0 ]; then
-    echo "Successfully built osm2pgsql:$VERSION"
+    echo "Successfully built osm2pgrouting:$VERSION"
   else
-    echo "Failed to build osm2pgsql:$VERSION"
+    echo "Failed to build osm2pgrouting:$VERSION"
     rm "$TEMP_DOCKERFILE" # Remove temporary Dockerfile if build fails
   fi
 
@@ -42,7 +42,7 @@ do
       sed -i "s/{{ version }}/$VERSION/g" docker-compose.yaml.tmp
       docker compose -f docker-compose.yaml.tmp up -d
       sleep 10
-      docker compose -f docker-compose.yaml.tmp run -v "$(pwd)":/data osm2pgsql \
+      docker compose -f docker-compose.yaml.tmp run -v "$(pwd)":/data osm2pgrouting \
         -d o2p \
         -U o2p \
         -H postgis \
@@ -52,7 +52,7 @@ do
         output=$(docker compose -f docker-compose.yaml.tmp exec postgis \
                 psql \
                 -U o2p \
-                -c "select count(*) from planet_osm_point limit 1")
+                -c "select count(*) from edges limit 1")
 
         # Extract the count value from the output
         count=$(echo "$output" | grep -o '[0-9]\+' | head -n 1) # Use head -n 1 to ensure we only get the first match
@@ -63,13 +63,13 @@ do
 
         # If the count is greater than zero then the test passes
         if [ "$count" -gt 0 ]; then
-          docker tag osm2pgsql:$VERSION iboates/osm2pgsql:$VERSION-nightly
-          docker push iboates/osm2pgsql:$VERSION-nightly
+          docker tag osm2pgrouting:$VERSION iboates/osm2pgrouting:$VERSION-nightly
+          docker push iboates/osm2pgrouting:$VERSION-nightly
           echo -e "$VERSION-nightly: \033[32mPUSHED\033[0m"
 
           if [ "$LARGEST_VERSION" = "$VERSION" ]; then
-            docker tag osm2pgsql:$VERSION iboates/osm2pgsql:latest-nightly
-            docker push iboates/osm2pgsql:latest-nightly
+            docker tag osm2pgrouting:$VERSION iboates/osm2pgrouting:latest-nightly
+            docker push iboates/osm2pgrouting:latest-nightly
             echo -e "latest-nightly: \033[32mPUSHED\033[0m"
           fi
 
