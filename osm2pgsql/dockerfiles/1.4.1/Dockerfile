@@ -1,4 +1,4 @@
-FROM docker.io/alpine:latest as builder AS builder
+FROM docker.io/alpine:latest as builder
 
 RUN apk --no-cache add \
     git \
@@ -43,9 +43,6 @@ RUN apk --no-cache add \
 
 COPY --from=builder /usr/local/bin/osm2pgsql* /usr/local/bin/
 COPY --from=builder /usr/local/share/osm2pgsql/*.style /usr/local/share/osm2pgsql/
-
-COPY --from=builder /venv /venv
-ENV PATH="/venv/bin:$PATH"
 
 LABEL org.opencontainers.image.created="{{ created }}" \
       org.opencontainers.image.authors="Isaac Boates <iboates@gmail.com>" \

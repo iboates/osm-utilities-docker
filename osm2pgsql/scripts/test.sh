@@ -1,37 +1,36 @@
 #!/bin/bash
 
-deep_mode=false
+# Function to create a timestamp in RFC 3339 format
+create_timestamp() {
+    date --utc "+%Y-%m-%dT%H:%M:%SZ"
+}
 
-# Parse command-line arguments
-while [[ "$#" -gt 0 ]]; do
-  case $1 in
-    --deep) deep_mode=true ;;
-    *) break ;;
-  esac
-  shift
-done
-
-# If deep mode is enabled, download the file
-if $deep_mode; then
-  wget -O data.pbf https://download.geofabrik.de/europe/andorra-latest.osm.pbf  > /dev/null 2>&1
+# Check if at least one version code is provided
+if [ $# -eq 0 ]; then
+  echo "Usage: $0 <version1> [version2] [...]"
+  exit 1
 fi
 
-# Remaining arguments are considered version numbers
-for VERSION in "$@"; do
-  if docker run --pull=never --rm osm2pgsql:$VERSION 2>&1 | grep -q "osm2pgsql"; then
-    if $deep_mode; then
-      cp docker-compose.yaml docker-compose.yaml.tmp
+wget -O data.pbf https://download.geofabrik.de/europe/andorra-latest.osm.pbf
+
+LARGEST_VERSION=$(basename $(ls -d ../dockerfiles/*/ | sort -V | tail -n 1))
+
+# Loop through each version code to build the images
+for VERSION in "$@"
+do
+
+  # Test the image we just built
+  cp docker-compose.yaml docker-compose.yaml.tmp
       sed -i "s/{{ version }}/$VERSION/g" docker-compose.yaml.tmp
-      docker compose -f docker-compose.yaml.tmp up -d > /dev/null 2>&1
+      docker compose -f docker-compose.yaml.tmp up -d
       sleep 10
       docker compose -f docker-compose.yaml.tmp run -v "$(pwd)":/data osm2pgsql \
         -d o2p \
         -U o2p \
         -H postgis \
         -P 5432 \
-        /data/data.pbf > /dev/null 2>&1
+        /data/data.pbf
 
-                # Correctly capture the output without redirecting it to /dev/null
         output=$(docker compose -f docker-compose.yaml.tmp exec postgis \
                 psql \
                 -U o2p \
@@ -43,19 +42,15 @@ for VERSION in "$@"; do
         # Assuming the count is always a number or empty. If count is empty, set it to 0
         count=${count:-0}
 
-        # Check if the count is less than or equal to 0
-        if [ "$count" -le 0 ]; then
-           echo -e "$VERSION: \033[31mFAILED (deep)\033[0m"
+        # If the count is greater than zero then the test passes
+        if [ "$count" -gt 0 ]; then
+          echo -e "$VERSION \033[32mPASSED\033[0m"
+        else
+          echo -e "$VERSION \033[31mFAILED\033[0m"
         fi
 
       # Use the -f flag with docker compose down to ensure it uses the correct compose file
-      docker compose -f docker-compose.yaml.tmp down > /dev/null 2>&1
+      docker compose -f docker-compose.yaml.tmp down
       rm docker-compose.yaml.tmp
 
-    fi
-
-    echo -e "$VERSION: \033[32mPASSED\033[0m"
-  else
-    echo -e "$VERSION: \033[31mFAILED\033[0m"
-  fi
 done
