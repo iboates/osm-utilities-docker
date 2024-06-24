@@ -1,4 +1,4 @@
-FROM docker.io/python:3.8-alpine AS builder
+FROM docker.io/python:3.11-alpine AS builder
 
 RUN apk --no-cache add \
     git \
@@ -35,7 +35,7 @@ RUN python3 -m venv /venv
 ENV PATH="/venv/bin:$PATH"
 RUN pip install osmium psycopg2
 
-FROM docker.io/python:3.8-alpine
+FROM docker.io/python:3.11-alpine
 
 RUN apk --no-cache add \
     nlohmann-json \
