@@ -39,7 +39,7 @@ jobs:
       - name: build
         run: |
           cd osmium/scripts
-          ./nightly_build_and_push.sh $(for d in $(ls -d ../dockerfiles/*/ | sort -V); do basename "$d"; done | tr '\n' ' ')
+          ./monthly_build_and_push.sh $(for d in $(ls -d ../dockerfiles/*/ | sort -V); do basename "$d"; done | tr '\n' ' ')
         shell: bash
 
 
