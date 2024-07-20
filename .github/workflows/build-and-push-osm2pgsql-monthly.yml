@@ -7,9 +7,11 @@
 # To get a newer version, you will need to update the SHA.
 # You can also reference a tag or branch, but the action may change without warning.
 
-name: Publish osm2pgsql to Dockerhub
+name: Monthly publish osm2pgsql to Dockerhub
 
 on:
+  push:
+    master
   schedule:
     - cron: '0 0 1 * *'  # first of every month
 
