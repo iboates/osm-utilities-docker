@@ -1,4 +1,4 @@
-FROM docker.io/python:3.11-alpine AS builder
+FROM docker.io/python:3-alpine AS builder
 
 RUN apk --no-cache add \
     git \
@@ -34,7 +34,7 @@ ENV PATH="/venv/bin:$PATH"
 RUN pip install osmium psycopg2
 
 
-FROM docker.io/python:3.11-alpine
+FROM docker.io/python:3-alpine
 
 RUN apk --no-cache add \
     nlohmann-json \
@@ -59,6 +59,9 @@ ENV PATH="/venv/bin:$PATH"
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
+# Fix CVE vulns
+RUN pip install --upgrade setuptools certifi
 
 LABEL org.opencontainers.image.created="{{ created }}" \
       org.opencontainers.image.authors="Isaac Boates <iboates@gmail.com>" \

@@ -1,4 +1,4 @@
-FROM docker.io/python:3.11-alpine AS builder
+FROM docker.io/python:3-alpine AS builder
 
 RUN apk --no-cache add \
     git \
@@ -32,6 +32,8 @@ RUN pip install osmium psycopg2
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+# Fix CVE vulns
+RUN pip install --upgrade setuptools certifi
 
 LABEL org.opencontainers.image.created="{{ created }}" \
       org.opencontainers.image.authors="Isaac Boates <iboates@gmail.com>" \

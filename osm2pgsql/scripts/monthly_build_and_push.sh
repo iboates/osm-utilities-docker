@@ -19,12 +19,32 @@ LARGEST_VERSION=$(basename $(ls -d ../dockerfiles/*/ | sort -V | tail -n 1))
 for VERSION in "$@"
 do
 
+  echo "Building Docker image for version: $VERSION"
+  CREATED=$(create_timestamp)
+
+  # Create a temporary Dockerfile with version and timestamp replaced
+  TEMP_DOCKERFILE="Dockerfile.$VERSION"
+  cp ../dockerfiles/$VERSION/Dockerfile "$TEMP_DOCKERFILE"
+  sed -i "s/{{ created }}/$CREATED/g" "$TEMP_DOCKERFILE"
+
+  # Build the Docker image with the current version tag using the temporary Dockerfile
+  docker build --build-arg VERSION=$VERSION --build-arg TAG=$TAG -t osm2pgsql:$VERSION -f "$TEMP_DOCKERFILE" .
+
+  if [ $? -eq 0 ]; then
+    echo "Successfully built osm2pgsql:$VERSION"
+  else
+    echo "Failed to build osm2pgsql:$VERSION"
+    rm "$TEMP_DOCKERFILE" # Remove temporary Dockerfile if build fails
+  fi
+
+  rm "$TEMP_DOCKERFILE" # Remove temporary Dockerfile after successful build
+
   # Test the image we just built
   cp docker-compose.yaml docker-compose.yaml.tmp
       sed -i "s/{{ version }}/$VERSION/g" docker-compose.yaml.tmp
       docker compose -f docker-compose.yaml.tmp up -d
       sleep 10
-      docker compose -f docker-compose.yaml.tmp run --rm -v "$(pwd)":/data osm2pgsql \
+      docker compose -f docker-compose.yaml.tmp run -v "$(pwd)":/data osm2pgsql \
         -d o2p \
         -U o2p \
         -H postgis \
@@ -38,15 +58,23 @@ do
 
         # Extract the count value from the output
         count=$(echo "$output" | grep -o '[0-9]\+' | head -n 1) # Use head -n 1 to ensure we only get the first match
+        echo "TEST RESULT: found " $count "features"
 
         # Assuming the count is always a number or empty. If count is empty, set it to 0
         count=${count:-0}
 
         # If the count is greater than zero then the test passes
         if [ "$count" -gt 0 ]; then
-          echo -e "$VERSION \033[32mPASSED\033[0m"
-        else
-          echo -e "$VERSION \033[31mFAILED\033[0m"
+          docker tag osm2pgsql:$VERSION iboates/osm2pgsql:$VERSION
+          docker push iboates/osm2pgsql:$VERSION
+          echo -e "$VERSION: \033[32mPUSHED\033[0m"
+
+          if [ "$LARGEST_VERSION" = "$VERSION" ]; then
+            docker tag osm2pgsql:$VERSION iboates/osm2pgsql:latest
+            docker push iboates/osm2pgsql:latest
+            echo -e "latest: \033[32mPUSHED\033[0m"
+          fi
+
         fi
 
       # Use the -f flag with docker compose down to ensure it uses the correct compose file

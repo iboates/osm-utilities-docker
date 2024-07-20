@@ -10,6 +10,7 @@ do
     docker tag osm2pgsql:$VERSION iboates/osm2pgsql:$VERSION > /dev/null 2>&1
     docker push iboates/osm2pgsql:$VERSION > /dev/null
     echo -e "$VERSION: \033[32mPUSHED\033[0m"
+    docker image rm iboates/osm2pgsql:$VERSION
   else
     echo -e "$VERSION: \033[31mTEST FAILED, NOT PUSHING\033[0m"
   fi
