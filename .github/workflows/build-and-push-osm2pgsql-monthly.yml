@@ -11,7 +11,8 @@ name: Monthly publish osm2pgsql to Dockerhub
 
 on:
   push:
-    - master
+    branches:
+      - master
   schedule:
     - cron: '0 0 1 * *'  # first of every month
 
