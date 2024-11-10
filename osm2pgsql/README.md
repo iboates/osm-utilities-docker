@@ -49,6 +49,15 @@ found at the source repo's [releases page](https://github.com/osm2pgsql-dev/osm2
 docker run docker.io/iboates/osm2pgsql:latest
 ```
 
+The image can be build locally with this command:
+
+```shell
+docker build \
+  --tag custom-osm2pgsql-image \
+  --file dockerfiles/2.0.0/Dockerfile \
+  scripts
+```
+
 ### Minimal import
 
 The below example assumes you already have a PostGIS instance running on localhost, port 5432.
