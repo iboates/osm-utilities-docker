@@ -79,6 +79,8 @@ RUN sed -i -e 's/\r$//' entrypoint.sh
 ENV LUA_PATH /osm2pgsql-themepark/lua/?.lua;;
 COPY --from=themepark-downloader /osm2pgsql-themepark /osm2pgsql-themepark
 
+COPY LICENSE LICENSE
+
 # Fix CVE vulns
 RUN pip install --upgrade setuptools certifi
 

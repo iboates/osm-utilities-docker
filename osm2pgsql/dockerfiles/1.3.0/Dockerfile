@@ -46,6 +46,8 @@ COPY --from=builder /usr/local/share/osm2pgsql/*.style /usr/local/share/osm2pgsq
 # Fix CVE vulns
 RUN pip install --upgrade setuptools certifi
 
+COPY LICENSE LICENSE
+
 LABEL org.opencontainers.image.created="{{ created }}" \
       org.opencontainers.image.authors="Isaac Boates <iboates@gmail.com>" \
       org.opencontainers.image.url="https://github.com/iboates/osm2pgsql-docker" \
