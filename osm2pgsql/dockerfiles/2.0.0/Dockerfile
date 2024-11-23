@@ -34,6 +34,20 @@ ENV PATH="/venv/bin:$PATH"
 RUN pip install osmium psycopg2
 
 
+FROM alpine/git:v2.45.2 AS themepark-downloader
+
+# Clone osm2pgsql-themepark repo
+ARG REPO_URL=https://github.com/osm2pgsql-dev/osm2pgsql-themepark.git
+ARG COMMIT_HASH=b26afa5
+ARG TARGET_PATH_REPO=/osm2pgsql-themepark
+RUN git clone ${REPO_URL} ${TARGET_PATH_REPO} && \
+    cd ${TARGET_PATH_REPO} && \
+    git checkout ${COMMIT_HASH} && \
+    rm -rf .git
+
+ENV LUA_PATH /osm2pgsql-themepark/lua/?.lua;;
+
+
 FROM docker.io/python:3-alpine
 
 RUN apk --no-cache add \
@@ -60,6 +74,12 @@ ENV PATH="/venv/bin:$PATH"
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 RUN sed -i -e 's/\r$//' entrypoint.sh
+
+# osm2pgsql-themepark
+ENV LUA_PATH /osm2pgsql-themepark/lua/?.lua;;
+COPY --from=themepark-downloader /osm2pgsql-themepark /osm2pgsql-themepark
+
+COPY LICENSE LICENSE
 
 # Fix CVE vulns
 RUN pip install --upgrade setuptools certifi
