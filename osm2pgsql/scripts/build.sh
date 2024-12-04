@@ -19,11 +19,10 @@ do
   CREATED=$(create_timestamp)
 
   # Create a temporary Dockerfile with version and timestamp replaced
+
   TEMP_DOCKERFILE="Dockerfile.$VERSION"
   cp dockerfiles/$VERSION/Dockerfile "$TEMP_DOCKERFILE"
   sed -i "s/{{ created }}/$CREATED/g" "$TEMP_DOCKERFILE"
-
-  echo $(ls ..)
 
   # Build the Docker image with the current version tag using the temporary Dockerfile
   docker build --build-arg VERSION=$VERSION --build-arg TAG=$TAG -t osm2pgsql:$VERSION -f "$TEMP_DOCKERFILE" .
