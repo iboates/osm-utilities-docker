@@ -26,7 +26,6 @@ WORKDIR build
 RUN cmake -D WITH_LUAJIT=ON ..
 RUN make
 RUN make install
-RUN make install-gen
 
 RUN apk add --no-cache python3 py3-pip
 RUN python3 -m venv /venv
