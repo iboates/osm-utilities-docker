@@ -24,15 +24,15 @@ do
   cp dockerfiles/$VERSION/Dockerfile "$TEMP_DOCKERFILE"
   sed -i "s/{{ created }}/$CREATED/g" "$TEMP_DOCKERFILE"
 
- # Build the Docker image with the current version tag using the temporary Dockerfile
+  # Build the Docker image with the current version tag using the temporary Dockerfile
   docker build --build-arg VERSION=$VERSION --build-arg TAG=$TAG -t osm2pgsql:$VERSION -f "$TEMP_DOCKERFILE" .
 
   if [ $? -eq 0 ]; then
     echo "Successfully built osm2pgsql:$VERSION"
   else
     echo "Failed to build osm2pgsql:$VERSION"
-    rm "$TEMP_DOCKERFILE" # Remove temporary Dockerfile if build fails
+    rm -f "$TEMP_DOCKERFILE" # Remove temporary Dockerfile if build fails
   fi
 
- rm "$TEMP_DOCKERFILE" # Remove temporary Dockerfile after successful build
+  rm  -f "$TEMP_DOCKERFILE" # Remove temporary Dockerfile after successful build
 done
