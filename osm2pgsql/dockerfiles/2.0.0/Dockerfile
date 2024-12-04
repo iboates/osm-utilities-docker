@@ -81,13 +81,13 @@ COPY LICENSE LICENSE
 RUN pip install --upgrade setuptools certifi
 
 LABEL org.opencontainers.image.created="{{ created }}" \
-    org.opencontainers.image.authors="Isaac Boates <iboates@gmail.com>" \
-    org.opencontainers.image.url="https://github.com/iboates/osm2pgsql-docker" \
-    org.opencontainers.image.documentation="https://github.com/iboates/osm2pgsql-docker" \
-    org.opencontainers.image.source="https://github.com/iboates/osm2pgsql-docker" \
-    org.opencontainers.image.version="2.0.0" \
-    org.opencontainers.image.licenses="GPL-2.0" \
-    org.opencontainers.image.title="osm2pgsql" \
-    org.opencontainers.image.description="osm2pgsql is a tool for loading OpenStreetMap data into a PostgreSQL / PostGIS database suitable for applications like rendering into a map, geocoding with Nominatim, or general analysis."
+      org.opencontainers.image.authors="Isaac Boates <iboates@gmail.com>" \
+      org.opencontainers.image.url="https://github.com/iboates/osm2pgsql-docker" \
+      org.opencontainers.image.documentation="https://github.com/iboates/osm2pgsql-docker" \
+      org.opencontainers.image.source="https://github.com/iboates/osm2pgsql-docker" \
+      org.opencontainers.image.version="2.0.0" \
+      org.opencontainers.image.licenses="GPL-2.0" \
+      org.opencontainers.image.title="osm2pgsql" \
+      org.opencontainers.image.description="osm2pgsql is a tool for loading OpenStreetMap data into a PostgreSQL / PostGIS database suitable for applications like rendering into a map, geocoding with Nominatim, or general analysis."
 
 ENTRYPOINT ["/entrypoint.sh"]
