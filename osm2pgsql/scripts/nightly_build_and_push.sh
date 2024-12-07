@@ -13,7 +13,8 @@ fi
 
 wget -O data.pbf https://download.geofabrik.de/europe/andorra-latest.osm.pbf
 
-LARGEST_VERSION=$(basename $(ls -d ../dockerfiles/*/ | sort -V | tail -n 1))
+LARGEST_VERSION=$(basename $(ls -d dockerfiles/*/ | sort -V | tail -n 1))
+echo "This version will be tagged as \`latest-nightly\`: $LARGEST_VERSION"
 
 # Loop through each version code to build the images
 for VERSION in "$@"
