@@ -80,7 +80,7 @@ docker run -v $(pwd):/data -e PGPASSWORD=<your password> --network="host" iboate
  https://download.geofabrik.de/europe/andorra-latest.osm.pbf
 ```
 
-The file will be downloaded to `/tmp` in the c bontainery default. You can change this if necessary by setting an
+The file will be downloaded to `/tmp` in the container default. You can change this if necessary by setting an
 environment variable:
 
 ```
