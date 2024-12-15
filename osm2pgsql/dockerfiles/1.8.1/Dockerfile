@@ -49,7 +49,8 @@ RUN apk --no-cache add \
     luajit \
     potrace \
     opencv \
-    lz4-libs
+    lz4-libs \
+    curl
 
 COPY --from=builder /usr/local/bin/osm2pgsql* /usr/local/bin/
 COPY --from=builder /usr/local/share/osm2pgsql/*.style /usr/local/share/osm2pgsql/
@@ -61,6 +62,9 @@ COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 # Fix CVE vulns
 RUN pip install --upgrade setuptools certifi
+
+# Where pbfs will get downloaded to if specified via URL
+ENV PBF_DOWNLOAD_DIR /tmp
 
 COPY LICENSE LICENSE
 
