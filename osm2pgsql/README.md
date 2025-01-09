@@ -20,25 +20,6 @@ instructions from the source repo.
 
 ## Use
 
-### First off
-
-It's important to realize that this image actually bundles both `osm2pgsql` (the main application), as well as the
-accompanying Python-based script (`osm2pgsql-replication`) [(script)](https://github.com/osm2pgsql-dev/osm2pgsql/blob/master/scripts/osm2pgsql-replication)
-[(manual)](https://osm2pgsql.org/doc/man/osm2pgsql-replication-1.6.0.html). When one normally installs `osm2pgsql`,
-`osm2pgsql-replication` is bundled alongside it and executed with the command `osm2pgsql-replication [args]`. It's hard
-to tell where one of these applications really "begins" or "ends", so they are bundled into the same image, but are
-executed separately as follows:
-
-To use `osm2pgsql` normally, you can execute one of:
-
-* `docker run iboates/osm2pgsql:latest [args]`
-* `docker run iboates/osm2pgsql:latest osm2pgsql [args]`
-
-To use `osm2pgsql-replication`, you can execute one of:
-
-* `docker run iboates/osm2pgsql:latest replication [args]`
-* `docker run iboates/osm2pgsql:latest osm2pgsql-replication [args]`
-
 ### Quick start
 
 The below example will pull the latest image and run it with no command (prints helpdocs).
@@ -57,6 +38,10 @@ docker build \
   --file dockerfiles/2.0.0/Dockerfile \
   scripts
 ```
+
+**NOTE:** `osm2pgsql-replication` and `osm2pgsql-gen` are bundled with the image for every version for which these extra
+utilities are compatible. For more information about how to invoke those, see
+[the relevant section](###Using-extra-utilities)
 
 ### Minimal import
 
@@ -81,12 +66,37 @@ Also note that when specifying locations of files, they must be specified using 
 In this example, we have mounted the current working directory as `/data`. So the PBF file we downloaded is accessible
 at `/data/data.pbf`.
 
+### Import directly from URL
+
+An extra feature in this image compared to a native install is that you can pass a URL to a .pbf file instead of a file
+path. The image will download the file, load it, then delete it afterwards:
+
+```sh
+docker run -v $(pwd):/data -e PGPASSWORD=<your password> --network="host" iboates/osm2pgsql:latest \
+ -d o2p \
+ -U o2p \
+ -H 127.0.0.1 \
+ -P 5432 \
+ https://download.geofabrik.de/europe/andorra-latest.osm.pbf
+```
+
+The file will be downloaded to `/tmp` in the container default. You can change this if necessary by setting an
+environment variable:
+
+```
+docker run -v $(pwd):/data -e PGPASSWORD=<your password> -e PBF_DOWNLOAD_DIR=<your download path> --network="host" iboates/osm2pgsql:latest \
+ -d o2p \
+ -U o2p \
+ -H 127.0.0.1 \
+ -P 5432 \
+ https://download.geofabrik.de/europe/andorra-latest.osm.pbf
+```
+
 ### Import with style file
 
 The below example shows how to do an import with a custom style file
 
 ```sh
-wget -O data.pbf https://download.geofabrik.de/europe/andorra-latest.osm.pbf
 docker run -v $(pwd):/data -e PGPASSWORD=<your password> --network="host" iboates/osm2pgsql:latest \
  -d o2p \
  -U o2p \
@@ -94,7 +104,7 @@ docker run -v $(pwd):/data -e PGPASSWORD=<your password> --network="host" iboate
  -P 5432 \
  -O flex \
  -S /data/style.lua \
- /data/data.pbf
+ https://download.geofabrik.de/europe/andorra-latest.osm.pbf
 ```
 
 As before, note that when specifying locations of files, they must be specified using the mounted path inside the
@@ -144,13 +154,12 @@ docker compose up -d
 And perform another minimal import like so:
 
 ```sh
-wget -O data.pbf https://download.geofabrik.de/europe/andorra-latest.osm.pbf
-docker compose run -v $(pwd):/data osm2pgsql \
+docker compose run osm2pgsql \
  -d o2p \
  -U o2p \
  -H postgis \
  -P 5432 \
- /data/data.pbf
+ https://download.geofabrik.de/europe/andorra-latest.osm.pbf
 ```
 
 The benefit here is that the PostGIS instance runs in the same network as where the osm2pgsql container will run, and
@@ -167,8 +176,28 @@ Verify that the import was successful:
 SELECT osm_id FROM planet_osm_point LIMIT 1;
 ```
 
+### Using extra utilities
+
+It's important to realize that this image actually bundles `osm2pgsql` (the main application) and the
+accompanying utilities (`osm2pgsql-replication`) [(script)](https://github.com/osm2pgsql-dev/osm2pgsql/blob/master/scripts/osm2pgsql-replication)
+[(manual)](https://osm2pgsql.org/doc/man/osm2pgsql-replication-1.6.0.html) and `osm2pgsql-gen` [(manual)](https://osm2pgsql.org/doc/manual.html#generalization). Normally, one
+would execute these via these identifiers, but since the image is named `osm2pgsql`, it can get unwieldly to have to
+use a command like `docker run osm2pgsql:latest osm2pgsql-gen`, so we offer a lot of flexibility on how to access them.
+The below table summarizes what combination of keywords will execute which utility:
+
+| **Command**                                                   | **Equivalent in native install**    |
+|---------------------------------------------------------------|-------------------------------------|
+| `docker run osm2pgsql:latest <args>`                          | `osm2pgsql <args>`                  |
+| `docker run osm2pgsql:latest osm2pgsql <args>`                | `osm2pgsql <args>`                  |
+| `docker run osm2pgsql:latest replication <args>`              | `osm2pgsql-replication <args>`      |
+| `docker run osm2pgsql:latest osm2pgsql-replication <args>`    | `osm2pgsql-replication <args>`      |
+| `docker run osm2pgsql:latest gen <args>`                      | `osm2pgsql-gen <args>`              |
+| `docker run osm2pgsql:latest generalization <args>`           | `osm2pgsql-gen <args>`              |
+| `docker run osm2pgsql:latest osm2pgsql-generalization <args>` | `osm2pgsql-gen <args>`              |
+| `docker run osm2pgsql:latest osm2pgsql-gen <args>`            | `osm2pgsql-gen <args>`              |
+
 ## Credits
 
 * These images were built by Isaac Boates at the [OSM Hackathon at Geofabrik in Karlsruhe on 24.02 - 25.02](https://wiki.openstreetmap.org/wiki/Karlsruhe_Hack_Weekend_February_2024)
 with help from the authors and other attendees
-* `osmium` is primarily maintained by [Jochen Topf](https://www.jochentopf.com/de/)
+* `osm2pgsql` is primarily maintained by [Jochen Topf](https://www.jochentopf.com/de/)
