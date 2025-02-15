@@ -48,7 +48,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ISSUE_TITLE="🚨 Failed Build: Issue Detected"
+          ISSUE_TITLE="TEST ISSUE DELETE ME"
           ISSUE_BODY="An issue was detected in the pipeline. The script returned: \`$RESULT\`. Please investigate."
           
           curl -X POST -H "Authorization: token $GITHUB_TOKEN" \

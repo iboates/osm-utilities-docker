@@ -59,7 +59,7 @@ LATEST_TAG="latest$SUFFIX"
 
 # Loop through each version code to build the images
 for VERSION in "${SORTED_VERSIONS[@]}"; do
-  echo "failed_test=true;version=$VERSION|" >> $GITHUB_ENV
+  echo "error_detected=true" >> $GITHUB_ENV
 #  ./scripts/build.sh "$VERSION" &> /dev/null
 #  echo -e "$VERSION: \033[32mBUILT\033[0m"
 #
