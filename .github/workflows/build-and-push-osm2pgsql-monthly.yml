@@ -48,7 +48,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ISSUE_TITLE="TEST ISSUE DELETE ME"
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          ISSUE_TITLE="🚨 Publish Pipeline Failure Report - $TIMESTAMP"
           ISSUE_BODY=$FAILED_VERSIONS
           
           curl -X POST -H "Authorization: token $GITHUB_TOKEN" \

@@ -86,41 +86,47 @@ LATEST_TAG="latest$SUFFIX"
 FAILED_VERSIONS=""
 
 for VERSION in "${SORTED_VERSIONS[@]}"; do
-    echo "error_detected=true" >> $GITHUB_ENV
-    FAILED_VERSIONS+="- $VERSION (Build Failed)\\n"
-#
-#    if ! ./scripts/build.sh "$VERSION" &> /dev/null; then
-#        echo -e "$VERSION: \033[31mBUILD FAILED\033[0m"
-#        FAILED_VERSIONS+="- $VERSION (Build Failed)\\n"
-#        continue
-#    fi
-#    echo -e "$VERSION: \033[32mBUILT\033[0m"
-#
-#    TEST_RESULT=$(./scripts/test.sh "$VERSION")
-#    if [[ "$TEST_RESULT" == *"PASSED"* ]]; then
-#        echo -e "$VERSION: \033[32mTEST PASSED\033[0m"
-#        docker tag osm2pgsql:"$VERSION" iboates/osm2pgsql:"$VERSION"
-#
-#        if ! docker push iboates/osm2pgsql:"$VERSION" &> /dev/null; then
-#            echo -e "$VERSION: \033[31mPUSH FAILED\033[0m"
-#            FAILED_VERSIONS+="- $VERSION (Push Failed)\\n"
-#            continue
-#        fi
-#        echo -e "$VERSION: \033[32mPUSHED\033[0m"
-#
-#        if [[ "$VERSION" == "$LARGEST_VERSION" ]]; then
-#            docker tag osm2pgsql:"$VERSION" iboates/osm2pgsql:"$LATEST_TAG"
-#            if ! docker push iboates/osm2pgsql:"$LATEST_TAG" &> /dev/null; then
-#                echo -e "$LATEST_TAG: \033[31mPUSH FAILED\033[0m"
-#                FAILED_VERSIONS+="- $LATEST_TAG (Push Failed)\\n"
-#            else
-#                echo -e "$LATEST_TAG: \033[32mPUSHED\033[0m"
-#            fi
-#        fi
-#    else
-#        echo -e "$VERSION: \033[31mTEST FAILED\033[0m"
-#        FAILED_VERSIONS+="- $VERSION (Test Failed)\\n"
-#    fi
+
+    # Build image
+    if ! ./scripts/build.sh "$VERSION" &> /dev/null; then
+        echo -e "$VERSION: \033[31mBUILD FAILED\033[0m"
+        echo "error_detected=true" >> $GITHUB_ENV
+        FAILED_VERSIONS+="- $VERSION (Build Failed)\\n"
+        continue
+    fi
+    echo -e "$VERSION: \033[32mBUILT\033[0m"
+
+    # Test built image
+    TEST_RESULT=$(./scripts/test.sh "$VERSION")
+    if [[ "$TEST_RESULT" == *"PASSED"* ]]; then
+        echo -e "$VERSION: \033[32mTEST PASSED\033[0m"
+        docker tag osm2pgsql:"$VERSION" iboates/osm2pgsql:"$VERSION"
+
+        # Push image if tests pass
+        if ! docker push iboates/osm2pgsql:"$VERSION" &> /dev/null; then
+            echo -e "$VERSION: \033[31mPUSH FAILED\033[0m"
+            echo "error_detected=true" >> $GITHUB_ENV
+            FAILED_VERSIONS+="- $VERSION (Push Failed)\\n"
+            continue
+        fi
+        echo -e "$VERSION: \033[32mPUSHED\033[0m"
+
+        # Tag largest version as latest and push
+        if [[ "$VERSION" == "$LARGEST_VERSION" ]]; then
+            docker tag osm2pgsql:"$VERSION" iboates/osm2pgsql:"$LATEST_TAG"
+            if ! docker push iboates/osm2pgsql:"$LATEST_TAG" &> /dev/null; then
+                echo -e "$LATEST_TAG: \033[31mPUSH FAILED\033[0m"
+                echo "error_detected=true" >> $GITHUB_ENV
+                FAILED_VERSIONS+="- $LATEST_TAG (Push Failed)\\n"
+            else
+                echo -e "$LATEST_TAG: \033[32mPUSHED\033[0m"
+            fi
+        fi
+    else
+        echo -e "$VERSION: \033[31mTEST FAILED\033[0m"
+        echo "error_detected=true" >> $GITHUB_ENV
+        FAILED_VERSIONS+="- $VERSION (Test Failed)\\n"
+    fi
 
 done
 

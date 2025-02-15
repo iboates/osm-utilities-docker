@@ -42,3 +42,17 @@ jobs:
           cd osm2pgsql
           ./scripts/publish.sh --suffix nightly
         shell: bash
+
+      - name: Create GitHub Issue if needed
+        if: env.error_detected == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          ISSUE_TITLE="🚨 Publish Pipeline Failure Report - $TIMESTAMP"
+          ISSUE_BODY=$FAILED_VERSIONS
+
+          curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/issues \
+            -d "{\"title\":\"$ISSUE_TITLE\", \"body\":\"$ISSUE_BODY\"}"
