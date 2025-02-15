@@ -14,7 +14,8 @@ RUN apk --no-cache add \
     libpq \
     proj-dev \
     lua5.3-dev \
-    luajit-dev
+    luajit-dev \
+    curl
 
 RUN git clone -b 1.9.0 https://github.com/osm2pgsql-dev/osm2pgsql.git
 WORKDIR osm2pgsql
@@ -34,6 +35,9 @@ COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 # Fix CVE vulns
 RUN pip install --upgrade setuptools certifi
+
+# Where pbfs will get downloaded to if specified via URL
+ENV PBF_DOWNLOAD_DIR /tmp
 
 COPY LICENSE LICENSE
 

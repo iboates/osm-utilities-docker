@@ -63,7 +63,8 @@ RUN apk --no-cache add \
     luajit \
     potrace \
     opencv \
-    lz4-libs
+    lz4-libs \
+    curl
 
 COPY --from=builder /usr/local/bin/osm2pgsql* /usr/local/bin/
 COPY --from=builder /osm2pgsql/scripts/osm2pgsql-replication /usr/local/bin/
@@ -84,9 +85,10 @@ COPY LICENSE LICENSE
 # Fix CVE vulns
 RUN pip install --upgrade setuptools certifi
 
-ARG now
+# Where pbfs will get downloaded to if specified via URL
+ENV PBF_DOWNLOAD_DIR /tmp
 
-LABEL org.opencontainers.image.created="$now" \
+LABEL org.opencontainers.image.created="{{ created }}" \
       org.opencontainers.image.authors="Isaac Boates <iboates@gmail.com>" \
       org.opencontainers.image.url="https://github.com/iboates/osm2pgsql-docker" \
       org.opencontainers.image.documentation="https://github.com/iboates/osm2pgsql-docker" \
