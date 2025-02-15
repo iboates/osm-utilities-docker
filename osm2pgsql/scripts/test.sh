@@ -34,7 +34,7 @@ do
   # Test the image we just built
     export VERSION="$VERSION"
     docker compose -f docker-compose.yaml up -d &> /dev/null
-    sleep 10
+    sleep 30
     docker compose -f docker-compose.yaml run --rm osm2pgsql \
       -d o2p \
       -U o2p \
