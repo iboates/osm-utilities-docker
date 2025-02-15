@@ -13,7 +13,6 @@ on:
   push:
     branches:
       - master
-      - osmium-1.17.0
   schedule:
     - cron: '0 0 1 * *'  # first of every month
 

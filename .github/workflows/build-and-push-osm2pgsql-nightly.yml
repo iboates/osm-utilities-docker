@@ -13,7 +13,6 @@ on:
   push:
     branches:
       - master
-      - fix-broken-ci
   schedule:
     - cron: '0 0 * * *'  # every day at midnight
 
