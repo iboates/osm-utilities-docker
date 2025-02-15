@@ -49,7 +49,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ISSUE_TITLE="TEST ISSUE DELETE ME"
-          ISSUE_BODY="An issue was detected in the pipeline. The script returned: \`$RESULT\`. Please investigate."
+          ISSUE_BODY=$FAILED_VERSIONS
           
           curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
