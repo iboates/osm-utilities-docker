@@ -40,7 +40,7 @@ jobs:
       - name: build
         run: |
           cd osm2pgsql
-          ./scripts/monthly_build_and_push.sh $(for d in $(ls -d dockerfiles/*/ | sort -V); do basename "$d"; done | tr '\n' ' ')
+          ./scripts/publish.sh
         shell: bash
 
 

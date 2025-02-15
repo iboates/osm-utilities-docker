@@ -80,7 +80,9 @@ COPY LICENSE LICENSE
 # Fix CVE vulns
 RUN pip install --upgrade setuptools certifi
 
-LABEL org.opencontainers.image.created="{{ created }}" \
+ARG now
+
+LABEL org.opencontainers.image.created="$now" \
       org.opencontainers.image.authors="Isaac Boates <iboates@gmail.com>" \
       org.opencontainers.image.url="https://github.com/iboates/osm2pgsql-docker" \
       org.opencontainers.image.documentation="https://github.com/iboates/osm2pgsql-docker" \

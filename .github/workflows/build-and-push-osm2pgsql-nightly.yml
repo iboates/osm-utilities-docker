@@ -40,7 +40,5 @@ jobs:
       - name: build
         run: |
           cd osm2pgsql
-          ./scripts/nightly_build_and_push.sh $(for d in $(ls -d dockerfiles/*/ | sort -V); do basename "$d"; done | tr '\n' ' ')
+          ./scripts/publish.sh --suffix nightly
         shell: bash
-
-

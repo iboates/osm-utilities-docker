@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
 
   postgis:
@@ -14,9 +12,11 @@ services:
       - "5432:5432"
 
   osm2pgsql:
-    image: osm2pgsql:{{ version }}
+    image: osm2pgsql:${VERSION}
     environment:
       PGPASSWORD: o2p
+    volumes:
+      - ./:/data
 
 volumes:
   postgis_data:
