@@ -46,6 +46,7 @@ do
   docker build \
     --build-arg VERSION=$VERSION \
     --build-arg TAG=$TAG \
+    --build-arg BUILD_TIMESTAMP="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     -t osm2pgsql:$VERSION \
     -f "dockerfiles/$DOCKERFILE_FOLDER/Dockerfile" .
 

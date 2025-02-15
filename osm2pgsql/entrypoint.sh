@@ -10,16 +10,12 @@ for arg; do
   LAST_ARG=$arg
 done
 
-echo "Download directory: $DOWNLOAD_DIR"
-echo "Last argument: $LAST_ARG"
-
 # Check if the last argument starts with "http"
 case "$LAST_ARG" in
   http://*|https://*)
     FILENAME=$(basename "$LAST_ARG")
     FILE_PATH="$DOWNLOAD_DIR/$FILENAME"
 
-    echo "Downloading $LAST_ARG to $FILE_PATH..."
     curl -o "$FILE_PATH" "$LAST_ARG"
 
     # Mark the file for deletion later
@@ -42,7 +38,6 @@ esac
 # Function to clean up the downloaded file if marked for deletion
 cleanup() {
   if [ -n "$DELETE_FILE" ]; then
-    echo "Deleting downloaded file: $DELETE_FILE"
     rm -f "$DELETE_FILE"
   fi
 }

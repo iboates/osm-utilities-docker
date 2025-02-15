@@ -83,7 +83,10 @@ RUN pip install --upgrade setuptools certifi
 # Where pbfs will get downloaded to if specified via URL
 ENV PBF_DOWNLOAD_DIR /tmp
 
-LABEL org.opencontainers.image.created="{{ created }}" \
+ARG BUILD_TIMESTAMP
+ENV BUILD_TIMESTAMP=${BUILD_TIMESTAMP:-"unknown"}
+
+LABEL org.opencontainers.image.created="$BUILD_TIMESTAMP" \
       org.opencontainers.image.authors="Isaac Boates <iboates@gmail.com>" \
       org.opencontainers.image.url="https://github.com/iboates/osm2pgsql-docker" \
       org.opencontainers.image.documentation="https://github.com/iboates/osm2pgsql-docker" \
