@@ -33,8 +33,6 @@ RUN python3 -m venv /venv
 ENV PATH="/venv/bin:$PATH"
 RUN pip install osmium psycopg2
 
-FROM docker.io/python:3-alpine
-
 FROM alpine/git:v2.45.2 AS themepark-downloader
 
 # Clone osm2pgsql-themepark repo
@@ -47,6 +45,8 @@ RUN git clone ${REPO_URL} ${TARGET_PATH_REPO} && \
     rm -rf .git
 
 ENV LUA_PATH /osm2pgsql-themepark/lua/?.lua;;
+
+FROM docker.io/python:3-alpine
 
 RUN apk --no-cache add \
     nlohmann-json \
