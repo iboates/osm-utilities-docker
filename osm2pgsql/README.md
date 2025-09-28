@@ -180,7 +180,7 @@ SELECT osm_id FROM planet_osm_point LIMIT 1;
 
 It's important to realize that this image actually bundles `osm2pgsql` (the main application) and the
 accompanying utilities (`osm2pgsql-replication`) [(script)](https://github.com/osm2pgsql-dev/osm2pgsql/blob/master/scripts/osm2pgsql-replication)
-[(manual)](https://osm2pgsql.org/doc/man/osm2pgsql-replication-1.6.0.html) and `osm2pgsql-gen` [(manual)](https://osm2pgsql.org/doc/manual.html#generalization). Normally, one
+[(manual)](https://osm2pgsql.org/doc/man/osm2pgsql-replication-1.6.0.html), `osm2pgsql-expire` [(manual)](https://osm2pgsql.org/doc/manual.html#expire) and `osm2pgsql-gen` [(manual)](https://osm2pgsql.org/doc/manual.html#generalization). Normally, one
 would execute these via these identifiers, but since the image is named `osm2pgsql`, it can get unwieldly to have to
 use a command like `docker run osm2pgsql:latest osm2pgsql-gen`, so we offer a lot of flexibility on how to access them.
 The below table summarizes what combination of keywords will execute which utility:
@@ -195,6 +195,8 @@ The below table summarizes what combination of keywords will execute which utili
 | `docker run osm2pgsql:latest generalization <args>`           | `osm2pgsql-gen <args>`              |
 | `docker run osm2pgsql:latest osm2pgsql-generalization <args>` | `osm2pgsql-gen <args>`              |
 | `docker run osm2pgsql:latest osm2pgsql-gen <args>`            | `osm2pgsql-gen <args>`              |
+| `docker run osm2pgsql:latest osm2pgsql-expire <args>`         | `osm2pgsql-expire <args>`           |
+| `docker run osm2pgsql:latest expire <args>`                   | `osm2pgsql-expire <args>`           |
 
 ## Credits
 

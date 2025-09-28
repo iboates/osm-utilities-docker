@@ -74,6 +74,14 @@ case "$1" in
     shift
     osm2pgsql-gen "$@"
     ;;
+  osm2pgsql-expire)
+    shift
+    osm2pgsql-expire "$@"
+    ;;
+  expire)
+    shift
+    osm2pgsql-expire "$@"
+    ;;
   *)
     osm2pgsql "$@"
     ;;
