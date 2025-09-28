@@ -18,8 +18,10 @@ RUN apk --no-cache add \
     potrace-dev \
     opencv-dev
 
-RUN git clone -b 2.2.0 https://github.com/osm2pgsql-dev/osm2pgsql.git
+# osm2pgsql-expire is currently experimental and is built but not installed in the 2.2.0 release
+RUN git clone https://github.com/osm2pgsql-dev/osm2pgsql.git
 WORKDIR osm2pgsql
+RUN git checkout 7629962d64519d048e83b541039e2a2db48dc75c
 
 RUN mkdir build
 WORKDIR build
