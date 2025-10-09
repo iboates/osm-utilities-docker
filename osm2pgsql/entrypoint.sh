@@ -3,43 +3,36 @@
 # Set the download directory (default: /tmp)
 DOWNLOAD_DIR=${PBF_DOWNLOAD_DIR:-/tmp}
 
-# Initialize LAST_ARG
-LAST_ARG=""
-DELETE_FILE=""
-for arg; do
-  LAST_ARG=$arg
+POSITIONAL_ARGS=""
+DELETE_FILES=""
+
+for arg in "$@" ; do
+    case $arg in
+    http://*|https://*)
+        FILENAME=$(basename "$arg")
+        FILE_PATH="$DOWNLOAD_DIR/$FILENAME"
+
+        curl -L -o "$FILE_PATH" "$arg"
+
+        POSITIONAL_ARGS="$POSITIONAL_ARGS $FILE_PATH"
+        # Mark the file for deletion later
+        DELETE_FILES="$DELETE_FILES $FILE_PATH"
+        shift
+        ;;
+    *)
+        POSITIONAL_ARGS="$POSITIONAL_ARGS $arg"
+        shift
+        ;;
+  esac
 done
 
-# Check if the last argument starts with "http"
-case "$LAST_ARG" in
-  http://*|https://*)
-    FILENAME=$(basename "$LAST_ARG")
-    FILE_PATH="$DOWNLOAD_DIR/$FILENAME"
-
-    curl -o "$FILE_PATH" "$LAST_ARG"
-
-    # Mark the file for deletion later
-    DELETE_FILE="$FILE_PATH"
-
-    # Rebuild the argument list, replacing the last argument with the file path
-    ARGS=""
-    for arg in "$@"; do
-      if [ "$arg" = "$LAST_ARG" ]; then
-        ARGS="$ARGS $FILE_PATH"
-      else
-        ARGS="$ARGS $arg"
-      fi
-    done
-    # Update positional parameters
-    set -- $ARGS
-    ;;
-esac
+set -- $POSITIONAL_ARGS # restore positional parameters
 
 # Function to clean up the downloaded file if marked for deletion
 cleanup() {
-  if [ -n "$DELETE_FILE" ]; then
-    rm -f "$DELETE_FILE"
-  fi
+  for I in $DELETE_FILES ; do
+    rm -f "$I"
+  done
 }
 
 # Ensure cleanup is called on exit
