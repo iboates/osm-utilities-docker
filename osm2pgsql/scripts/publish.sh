@@ -66,6 +66,8 @@ for VERSION in "${SORTED_VERSIONS[@]}"; do
         echo -e "$VERSION: \033[31mBUILD FAILED\033[0m"
         echo "error_detected=true" >> $GITHUB_ENV
         FAILED_VERSIONS+="- $VERSION (Build Failed)\\n"
+        docker image rm --force --no-prune iboates/osm2pgsql:"$VERSION"
+        docker image rm --force --no-prune osm2pgsql:"$VERSION"
         continue
     fi
     echo -e "$VERSION: \033[32mBUILT\033[0m"
@@ -81,6 +83,8 @@ for VERSION in "${SORTED_VERSIONS[@]}"; do
             echo -e "$VERSION: \033[31mPUSH FAILED\033[0m"
             echo "error_detected=true" >> $GITHUB_ENV
             FAILED_VERSIONS+="- $VERSION (Push Failed)\\n"
+            docker image rm --force --no-prune iboates/osm2pgsql:"$VERSION"
+            docker image rm --force --no-prune osm2pgsql:"$VERSION"
             continue
         fi
         echo -e "$VERSION: \033[32mPUSHED\033[0m"
@@ -101,6 +105,9 @@ for VERSION in "${SORTED_VERSIONS[@]}"; do
         echo "error_detected=true" >> $GITHUB_ENV
         FAILED_VERSIONS+="- $VERSION (Test Failed)\\n"
     fi
+
+    docker image rm --force --no-prune iboates/osm2pgsql:"$VERSION"
+    docker image rm --force --no-prune osm2pgsql:"$VERSION"
 
 done
 
