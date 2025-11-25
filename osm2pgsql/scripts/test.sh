@@ -56,6 +56,9 @@ run_test() {
     # Shut down containers
     docker compose down &> /dev/null || true
 
+    # Clean up old volumes because it might be stopping the publish pipeline from working
+    docker volume prune --all --force
+
     # Return success only if count > 0
     [ "$count" -gt 0 ]
 }
