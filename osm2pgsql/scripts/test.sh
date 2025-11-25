@@ -58,6 +58,7 @@ run_test() {
 
     # Clean up old volumes because it might be stopping the publish pipeline from working
     docker volume prune --all --force
+    docker image rm --no-prune --force 
 
     # Return success only if count > 0
     [ "$count" -gt 0 ]
