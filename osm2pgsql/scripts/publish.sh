@@ -1,5 +1,7 @@
 #!/bin/bash
 
+DRY_RUN=false
+
 force_dir() {
     # Traverse up until we find "osm-utilities-docker"
     while [[ "$PWD" != "/" && "$(basename "$PWD")" != "osm-utilities-docker" ]]; do
@@ -10,28 +12,28 @@ force_dir() {
     if [[ "$(basename "$PWD")" == "osm-utilities-docker" ]]; then
         cd osm2pgsql/scripts || { echo "Error: scripts directory not found"; exit 1; }
     else
-        # echo "Error: Not inside osm-utilities-docker or its subdirectories"
         exit 1
     fi
 
     cd ..
-
-    # echo "Now in $(pwd)"
 }
 
-parse_suffix() {
-  SUFFIX=""  # Declare in global scope
+parse_args() {
+  SUFFIX=""
 
   while [[ $# -gt 0 ]]; do
       case "$1" in
           --suffix)
               if [[ -n "$2" ]]; then
-                  SUFFIX="-$2"  # Assign value to global variable
+                  SUFFIX="-$2"
                   shift
               else
                   echo "Error: --suffix requires a value."
                   exit 1
               fi
+              ;;
+          --dry-run|-n)
+              DRY_RUN=true
               ;;
           *)
               echo "Unknown argument: $1"
@@ -43,19 +45,47 @@ parse_suffix() {
 }
 
 force_dir
-parse_suffix "$@"
+parse_args "$@"
 
 VERSIONS=()
 for dir in ./dockerfiles/*/; do
-    # Extract the base name (folder name)
     VERSION=$(basename "$dir")
+
+    # Skip the "legacy" folder
+    if [[ "$VERSION" == "legacy" ]]; then
+        continue
+    fi
+
     VERSIONS+=("$VERSION$SUFFIX")
 done
 
+
 SORTED_VERSIONS=($(printf "%s\n" "${VERSIONS[@]}" | sort -V))
-# echo "Sorted Versions: ${SORTED_VERSIONS[@]}"
 LARGEST_VERSION="${SORTED_VERSIONS[-1]}"
 LATEST_TAG="latest$SUFFIX"
+
+###########################################
+# DRY RUN MODE — list what would be built #
+###########################################
+if [[ "$DRY_RUN" == true ]]; then
+    echo "Dry run mode enabled."
+    echo "Images that would be built and pushed:"
+    echo
+
+    for VERSION in "${SORTED_VERSIONS[@]}"; do
+        echo " - iboates/osm2pgsql:${VERSION}"
+    done
+
+    echo
+    echo "Latest tag would be:"
+    echo " - iboates/osm2pgsql:${LATEST_TAG}"
+    echo
+    exit 0
+fi
+
+###########################################
+# NORMAL MODE — build and push images     #
+###########################################
 
 FAILED_VERSIONS=""
 
@@ -111,5 +141,4 @@ for VERSION in "${SORTED_VERSIONS[@]}"; do
 
 done
 
-# Store the failed versions as a bulleted markdown list in the GitHub environment
 echo "FAILED_VERSIONS=$FAILED_VERSIONS" >> $GITHUB_ENV
