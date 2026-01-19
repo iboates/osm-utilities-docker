@@ -15,7 +15,7 @@ RUN apk --no-cache add \
     lz4-dev \
     expat-dev
 
-RUN git clone -b v1.18.0 https://github.com/osmcode/osmium-tool.git
+RUN git clone -b v1.19.0 https://github.com/osmcode/osmium-tool.git
 
 WORKDIR osmium-tool
 RUN mkdir build
