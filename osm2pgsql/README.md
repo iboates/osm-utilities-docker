@@ -180,7 +180,7 @@ SELECT osm_id FROM planet_osm_point LIMIT 1;
 
 It's important to realize that this image actually bundles `osm2pgsql` (the main application) and the
 accompanying utilities (`osm2pgsql-replication`) [(script)](https://github.com/osm2pgsql-dev/osm2pgsql/blob/master/scripts/osm2pgsql-replication)
-[(manual)](https://osm2pgsql.org/doc/man/osm2pgsql-replication-1.6.0.html), `osm2pgsql-expire` [(manual)](https://osm2pgsql.org/doc/manual.html#expire) and `osm2pgsql-gen` [(manual)](https://osm2pgsql.org/doc/manual.html#generalization). Normally, one
+[(manual)](https://osm2pgsql.org/doc/man/osm2pgsql-replication-1.6.0.html), `osm2pgsql-expire` [(manual)](https://osm2pgsql.org/doc/manual.html#expire), `osm2pgsql-gen` [(manual)](https://osm2pgsql.org/doc/manual.html#generalization) and, as of version 2.3.0, `osm2pgsql-test-style` [(manual)](https://osm2pgsql.org/doc/manual.html#style-tests), a tool for testing Lua style files with a BDD-style testing language. Normally, one
 would execute these via these identifiers, but since the image is named `osm2pgsql`, it can get unwieldly to have to
 use a command like `docker run osm2pgsql:latest osm2pgsql-gen`, so we offer a lot of flexibility on how to access them.
 The below table summarizes what combination of keywords will execute which utility:
@@ -197,6 +197,25 @@ The below table summarizes what combination of keywords will execute which utili
 | `docker run osm2pgsql:latest osm2pgsql-gen <args>`            | `osm2pgsql-gen <args>`              |
 | `docker run osm2pgsql:latest osm2pgsql-expire <args>`         | `osm2pgsql-expire <args>`           |
 | `docker run osm2pgsql:latest expire <args>`                   | `osm2pgsql-expire <args>`           |
+| `docker run osm2pgsql:latest osm2pgsql-test-style <args>`     | `osm2pgsql-test-style <args>`       |
+| `docker run osm2pgsql:latest test-style <args>`               | `osm2pgsql-test-style <args>`       |
+
+### Testing style files (2.3.0+)
+
+Images from version 2.3.0 onwards bundle `osm2pgsql-test-style`, which runs BDD-style tests
+(`.feature` files) against your Lua style files. It needs a running PostgreSQL/PostGIS instance
+with a superuser role, since it creates and drops its own test databases:
+
+```sh
+docker run -v $(pwd):/data -e PGHOST=127.0.0.1 -e PGUSER=postgres -e PGPASSWORD=<your password> --network="host" iboates/osm2pgsql:latest \
+ test-style \
+ --style-data-dir /data \
+ /data/tests/my_style.feature
+```
+
+Useful options (see `test-style --help` for the full list): `--osm2pgsql-binary`, `--test-data-dir`,
+`--style-data-dir`, `--test-db`, `--template-test-db`, `--keep-test-db`, `--test-tablespace {yes,no,auto}`
+and `--test-proj {yes,no,auto}`.
 
 ## Credits
 
