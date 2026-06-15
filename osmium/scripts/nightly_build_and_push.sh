@@ -40,11 +40,8 @@ do
   # Test the image we just built
   if docker run --pull=never --rm osmium:$VERSION 2>&1 | grep -q "osmium"; then
 
-    # Test successful, push
-    docker tag osmium:$VERSION iboates/osmium:$VERSION-nightly
-    docker push iboates/osmium:$VERSION-nightly
-    echo -e "$VERSION-nightly: \033[32mPUSHED\033[0m"
-
+    # Test successful. Only the largest version is published nightly, and only
+    # as the latest-nightly tag (no per-version nightly tags).
     if [ "$LARGEST_VERSION" = "$VERSION" ]; then
       docker tag osmium:$VERSION iboates/osmium:latest-nightly
       docker push iboates/osmium:latest-nightly

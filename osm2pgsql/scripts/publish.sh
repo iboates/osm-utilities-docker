@@ -20,6 +20,7 @@ force_dir() {
 
 parse_args() {
   SUFFIX=""
+  LATEST_ONLY=false
 
   while [[ $# -gt 0 ]]; do
       case "$1" in
@@ -31,6 +32,9 @@ parse_args() {
                   echo "Error: --suffix requires a value."
                   exit 1
               fi
+              ;;
+          --latest-only)
+              LATEST_ONLY=true
               ;;
           --dry-run|-n)
               DRY_RUN=true
@@ -64,11 +68,25 @@ SORTED_VERSIONS=($(printf "%s\n" "${VERSIONS[@]}" | sort -V))
 LARGEST_VERSION="${SORTED_VERSIONS[-1]}"
 LATEST_TAG="latest$SUFFIX"
 
+# In latest-only mode, build/push just the largest version (tagged as latest).
+# Used by the nightly pipeline; the monthly pipeline rebuilds every version.
+if [[ "$LATEST_ONLY" == true ]]; then
+    SORTED_VERSIONS=("$LARGEST_VERSION")
+fi
+
 ###########################################
 # DRY RUN MODE — list what would be built #
 ###########################################
 if [[ "$DRY_RUN" == true ]]; then
     echo "Dry run mode enabled."
+
+    if [[ "$LATEST_ONLY" == true ]]; then
+        echo "Latest-only mode: building ${LARGEST_VERSION} and pushing only:"
+        echo " - iboates/osm2pgsql:${LATEST_TAG}"
+        echo
+        exit 0
+    fi
+
     echo "Images that would be built and pushed:"
     echo
 
@@ -106,18 +124,21 @@ for VERSION in "${SORTED_VERSIONS[@]}"; do
     TEST_RESULT=$(./scripts/test.sh "$VERSION")
     if [[ "$TEST_RESULT" == *"PASSED"* ]]; then
         echo -e "$VERSION: \033[32mTEST PASSED\033[0m"
-        docker tag osm2pgsql:"$VERSION" iboates/osm2pgsql:"$VERSION"
 
-        # Push image if tests pass
-        if ! docker push iboates/osm2pgsql:"$VERSION" &> /dev/null; then
-            echo -e "$VERSION: \033[31mPUSH FAILED\033[0m"
-            echo "error_detected=true" >> $GITHUB_ENV
-            FAILED_VERSIONS+="- $VERSION (Push Failed)\\n"
-            docker image rm --force --no-prune iboates/osm2pgsql:"$VERSION"
-            docker image rm --force --no-prune osm2pgsql:"$VERSION"
-            continue
+        # Push the versioned tag. Skipped in latest-only mode (nightly), where
+        # only the latest tag should ever be published.
+        if [[ "$LATEST_ONLY" != true ]]; then
+            docker tag osm2pgsql:"$VERSION" iboates/osm2pgsql:"$VERSION"
+            if ! docker push iboates/osm2pgsql:"$VERSION" &> /dev/null; then
+                echo -e "$VERSION: \033[31mPUSH FAILED\033[0m"
+                echo "error_detected=true" >> $GITHUB_ENV
+                FAILED_VERSIONS+="- $VERSION (Push Failed)\\n"
+                docker image rm --force --no-prune iboates/osm2pgsql:"$VERSION"
+                docker image rm --force --no-prune osm2pgsql:"$VERSION"
+                continue
+            fi
+            echo -e "$VERSION: \033[32mPUSHED\033[0m"
         fi
-        echo -e "$VERSION: \033[32mPUSHED\033[0m"
 
         # Tag largest version as latest and push
         if [[ "$VERSION" == "$LARGEST_VERSION" ]]; then

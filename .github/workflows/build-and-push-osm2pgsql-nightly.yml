@@ -39,7 +39,7 @@ jobs:
       - name: build
         run: |
           cd osm2pgsql
-          ./scripts/publish.sh --suffix nightly
+          ./scripts/publish.sh --latest-only --suffix nightly
         shell: bash
 
       - name: Create GitHub Issue if needed

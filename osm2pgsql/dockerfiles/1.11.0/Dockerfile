@@ -33,6 +33,13 @@ RUN python3 -m venv /venv
 ENV PATH="/venv/bin:$PATH"
 RUN pip install osmium psycopg2
 
+# The pyosmium source build on current alpine drops libstdc++.so.6 from the
+# extension modules' dynamic dependencies, breaking the import on musl.
+# Patch it back in.
+RUN apk add --no-cache patchelf && \
+    find /venv/lib -path '*osmium*' -name '*.so' \
+        -exec patchelf --add-needed libstdc++.so.6 {} \;
+
 
 FROM alpine/git:v2.45.2 AS themepark-downloader
 
