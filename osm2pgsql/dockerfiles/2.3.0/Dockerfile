@@ -20,7 +20,7 @@ RUN apk --no-cache add \
 
 RUN git clone https://github.com/osm2pgsql-dev/osm2pgsql.git
 WORKDIR osm2pgsql
-RUN git checkout 10e6b4f687cc9ae2dc42845ea7829c87d16e6eea
+RUN git checkout 2.3.0
 
 RUN mkdir build
 WORKDIR build
