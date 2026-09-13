@@ -53,6 +53,24 @@ run_test() {
     count=$(echo "$output" | grep -o '[0-9]\+' | head -n 1)
     count=${count:-0}
 
+    # Smoke-check osm2pgsql-gen where the image has it: confirm the binary
+    # runs and reports its version. This catches a runtime stage missing an
+    # opencv shared library. It is not a full generalization pipeline test.
+    #
+    # Versions that do not build osm2pgsql-gen (no opencv, e.g. 1.9.0) simply
+    # skip -- its absence is not a failure, but when present it must run.
+    # Note: --version goes to stderr, hence 2>&1; older versions also prefix
+    # the line with a timestamp, so the match must not be anchored.
+    gen_output=$(docker compose -f docker-compose.yaml run --rm \
+        --entrypoint sh osm2pgsql -c \
+        'command -v osm2pgsql-gen >/dev/null 2>&1 || { echo GEN_ABSENT; exit 0; }
+         osm2pgsql-gen --version 2>&1') || return 1
+    case "$gen_output" in
+        *GEN_ABSENT*)              : ;;
+        *"osm2pgsql-gen version"*) : ;;
+        *)                         return 1 ;;
+    esac
+
     # Shut down containers
     docker compose down &> /dev/null || true
 
