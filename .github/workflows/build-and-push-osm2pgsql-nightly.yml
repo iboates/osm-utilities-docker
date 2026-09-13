@@ -10,6 +10,7 @@
 name: Nightly publish osm2pgsql to Dockerhub
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
@@ -18,11 +19,26 @@ on:
 
 jobs:
   push_to_registry:
-    name: Push Docker image to Docker Hub
-    runs-on: ubuntu-latest
+    name: Push ${{ matrix.arch }} image to Docker Hub
+    strategy:
+      # An arm64 failure must never cancel the amd64 build.
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@master
+
+      # The test database image is amd64-only, so the arm64 runner needs QEMU to
+      # run it. The utility under test is built and run natively.
+      - name: Set up QEMU
+        if: matrix.arch == 'arm64'
+        uses: docker/setup-qemu-action@v3
 
       - name: Log in to Docker Hub
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
@@ -37,10 +53,20 @@ jobs:
           images: iboates/osm2pgsql
 
       - name: build
+        env:
+          PUSHED_TAGS_FILE: ${{ github.workspace }}/pushed-tags.txt
         run: |
           cd osm2pgsql
-          ./scripts/publish.sh --latest-only --suffix nightly
+          ./scripts/publish.sh --latest-only --suffix nightly-${{ matrix.arch }}
         shell: bash
+
+      - name: Upload pushed tag list
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pushed-tags-${{ matrix.arch }}
+          path: pushed-tags.txt
+          if-no-files-found: ignore
 
       - name: Create GitHub Issue if needed
         if: env.error_detected == 'true'
@@ -48,10 +74,39 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
-          ISSUE_TITLE="🚨 Publish Pipeline Failure Report - $TIMESTAMP"
+          ISSUE_TITLE="🚨 Publish Pipeline Failure Report (${{ matrix.arch }}) - $TIMESTAMP"
           ISSUE_BODY=$FAILED_VERSIONS
 
           curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/${{ github.repository }}/issues \
             -d "{\"title\":\"$ISSUE_TITLE\", \"body\":\"$ISSUE_BODY\"}"
+
+  manifest:
+    name: Merge multi-arch manifests
+    needs: push_to_registry
+    # Runs even when one architecture failed, so the other is still published.
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@master
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Download pushed tag lists
+        # Fails when neither architecture pushed anything; the merge script
+        # handles that case, so do not fail the job here.
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pushed-tags-*
+          path: pushed-tags
+
+      - name: Merge architecture tags into multi-arch manifests
+        run: ./scripts/merge_manifests.sh pushed-tags
+        shell: bash

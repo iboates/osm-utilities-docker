@@ -48,6 +48,14 @@ parse_args() {
   done
 }
 
+# Record a tag that was successfully pushed, so the manifest job knows which
+# architectures exist for it. No-op when PUSHED_TAGS_FILE is unset (local runs).
+record_pushed_tag() {
+  if [ -n "${PUSHED_TAGS_FILE:-}" ]; then
+    echo "$1" >> "$PUSHED_TAGS_FILE"
+  fi
+}
+
 force_dir
 parse_args "$@"
 
@@ -137,6 +145,7 @@ for VERSION in "${SORTED_VERSIONS[@]}"; do
                 docker image rm --force --no-prune osm2pgsql:"$VERSION"
                 continue
             fi
+            record_pushed_tag "iboates/osm2pgsql:$VERSION"
             echo -e "$VERSION: \033[32mPUSHED\033[0m"
         fi
 
@@ -148,6 +157,7 @@ for VERSION in "${SORTED_VERSIONS[@]}"; do
                 echo "error_detected=true" >> $GITHUB_ENV
                 FAILED_VERSIONS+="- $LATEST_TAG (Push Failed)\\n"
             else
+                record_pushed_tag "iboates/osm2pgsql:$LATEST_TAG"
                 echo -e "$LATEST_TAG: \033[32mPUSHED\033[0m"
             fi
         fi

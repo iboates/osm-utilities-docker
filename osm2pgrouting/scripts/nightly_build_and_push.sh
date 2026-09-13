@@ -5,9 +5,39 @@ create_timestamp() {
     date --utc "+%Y-%m-%dT%H:%M:%SZ"
 }
 
+
+# Parse optional flags before the version list. --suffix appends a suffix to
+# every tag pushed to Docker Hub, e.g. --suffix nightly-amd64 ->
+# iboates/osm2pgrouting:2.3.8-nightly-amd64
+SUFFIX="-nightly"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --suffix)
+      if [[ -n "${2:-}" ]]; then
+        SUFFIX="-$2"
+        shift 2
+      else
+        echo "Error: --suffix requires a value." >&2
+        exit 1
+      fi
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+# Record a tag that was successfully pushed, so the manifest job knows which
+# architectures exist for it. No-op when PUSHED_TAGS_FILE is unset (local runs).
+record_pushed_tag() {
+  if [ -n "${PUSHED_TAGS_FILE:-}" ]; then
+    echo "$1" >> "$PUSHED_TAGS_FILE"
+  fi
+}
+
 # Check if at least one version code is provided
 if [ $# -eq 0 ]; then
-  echo "Usage: $0 <version1> [version2] [...]"
+  echo "Usage: $0 [--suffix <suffix>] <version1> [version2] [...]"
   exit 1
 fi
 
@@ -67,14 +97,22 @@ do
 
         # If the count is greater than zero then the test passes
         if [ "$count" -gt 0 ]; then
-          docker tag osm2pgrouting:$VERSION iboates/osm2pgrouting:$VERSION-nightly
-          docker push iboates/osm2pgrouting:$VERSION-nightly
-          echo -e "$VERSION-nightly: \033[32mPUSHED\033[0m"
+          docker tag osm2pgrouting:$VERSION iboates/osm2pgrouting:$VERSION$SUFFIX
+          if docker push iboates/osm2pgrouting:$VERSION$SUFFIX; then
+            record_pushed_tag "iboates/osm2pgrouting:$VERSION$SUFFIX"
+            echo -e "$VERSION$SUFFIX: \033[32mPUSHED\033[0m"
+          else
+            echo -e "$VERSION$SUFFIX: \033[31mPUSH FAILED\033[0m"
+          fi
 
           if [ "$LARGEST_VERSION" = "$VERSION" ]; then
-            docker tag osm2pgrouting:$VERSION iboates/osm2pgrouting:latest-nightly
-            docker push iboates/osm2pgrouting:latest-nightly
-            echo -e "latest-nightly: \033[32mPUSHED\033[0m"
+            docker tag osm2pgrouting:$VERSION iboates/osm2pgrouting:latest$SUFFIX
+            if docker push iboates/osm2pgrouting:latest$SUFFIX; then
+              record_pushed_tag "iboates/osm2pgrouting:latest$SUFFIX"
+              echo -e "latest$SUFFIX: \033[32mPUSHED\033[0m"
+            else
+              echo -e "latest$SUFFIX: \033[31mPUSH FAILED\033[0m"
+            fi
           fi
 
         fi

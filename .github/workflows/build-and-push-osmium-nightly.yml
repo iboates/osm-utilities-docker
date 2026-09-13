@@ -10,6 +10,7 @@
 name: Nightly publish osmium to Dockerhub
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
@@ -18,8 +19,17 @@ on:
 
 jobs:
   push_to_registry:
-    name: Push Docker image to Docker Hub
-    runs-on: ubuntu-latest
+    name: Push ${{ matrix.arch }} image to Docker Hub
+    strategy:
+      # An arm64 failure must never cancel the amd64 build.
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@master
@@ -37,9 +47,46 @@ jobs:
           images: iboates/osmium
 
       - name: build
+        env:
+          PUSHED_TAGS_FILE: ${{ github.workspace }}/pushed-tags.txt
         run: |
           cd osmium/scripts
-          ./nightly_build_and_push.sh "$(basename "$(ls -d ../dockerfiles/*/ | sort -V | tail -n 1)")"
+          ./nightly_build_and_push.sh --suffix nightly-${{ matrix.arch }} "$(basename "$(ls -d ../dockerfiles/*/ | sort -V | tail -n 1)")"
         shell: bash
 
+      - name: Upload pushed tag list
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pushed-tags-${{ matrix.arch }}
+          path: pushed-tags.txt
+          if-no-files-found: ignore
 
+  manifest:
+    name: Merge multi-arch manifests
+    needs: push_to_registry
+    # Runs even when one architecture failed, so the other is still published.
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@master
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Download pushed tag lists
+        # Fails when neither architecture pushed anything; the merge script
+        # handles that case, so do not fail the job here.
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pushed-tags-*
+          path: pushed-tags
+
+      - name: Merge architecture tags into multi-arch manifests
+        run: ./scripts/merge_manifests.sh pushed-tags
+        shell: bash

@@ -3,7 +3,10 @@ version: '3.8'
 services:
 
   postgis:
+    # amd64-only image; emulated on arm64 runners. The binary under test
+    # still runs natively, this is only its database peer.
     image: pgrouting/pgrouting:latest
+    platform: linux/amd64
     environment:
       POSTGRES_DB: o2p
       POSTGRES_USER: o2p
