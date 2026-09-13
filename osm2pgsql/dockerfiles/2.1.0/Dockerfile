@@ -13,7 +13,6 @@ RUN apk --no-cache add \
     zlib-dev \
     libpq \
     proj-dev \
-    lua5.3-dev \
     luajit-dev \
     potrace-dev \
     opencv-dev
@@ -60,10 +59,11 @@ RUN apk --no-cache add \
     zlib \
     libpq \
     proj \
-    lua5.3 \
     luajit \
     potrace \
-    opencv \
+    libopencv_core \
+    libopencv_imgcodecs \
+    libopencv_imgproc \
     lz4-libs \
     curl
 
@@ -86,6 +86,15 @@ COPY LICENSE LICENSE
 
 # Fix CVE vulns
 RUN pip install --upgrade setuptools certifi
+
+# pip vendors its own copies of setuptools' pkg_resources shim (reported as
+# setuptools 70.3.0) and msgpack 1.1.2, and declares both in pip/_vendor/bom.cdx.json.
+# The upgrade above cannot touch them -- they are files inside pip itself, not
+# installed packages. pip is only needed while building this image; entrypoint.sh
+# never invokes python or pip, so remove it from the venv and the system
+# interpreter to drop the vendored copies entirely.
+RUN pip uninstall -y pip && \
+    /usr/local/bin/python3 -m pip uninstall -y pip
 
 # Where pbfs will get downloaded to if specified via URL
 ENV PBF_DOWNLOAD_DIR /tmp
