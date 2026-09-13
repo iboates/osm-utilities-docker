@@ -45,7 +45,7 @@ do
       sed -i "s/{{ version }}/$VERSION/g" docker-compose.yaml.tmp
       docker compose -f docker-compose.yaml.tmp up -d
       sleep 10
-      docker compose -f docker-compose.yaml.tmp run -v "$(pwd)":/data multiple primary keys \
+      docker compose -f docker-compose.yaml.tmp run -v "$(pwd)":/data osm2pgrouting \
         -d o2p \
         -U o2p \
         -h postgis \
