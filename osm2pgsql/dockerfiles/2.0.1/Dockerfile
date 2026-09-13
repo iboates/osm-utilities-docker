@@ -51,6 +51,12 @@ ENV LUA_PATH /osm2pgsql-themepark/lua/?.lua;;
 
 FROM docker.io/python:3-alpine
 
+# Packages inherited from the base image are frozen at whatever version it
+# shipped -- `apk add` installs new packages but never upgrades existing ones.
+# Upgrade first so base-image packages pick up published security fixes
+# (e.g. libuuid/util-linux CVE-2026-76642, -78408, -78409, -78410).
+RUN apk --no-cache upgrade
+
 RUN apk --no-cache add \
     nlohmann-json \
     boost \
