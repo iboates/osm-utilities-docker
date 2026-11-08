@@ -15,7 +15,9 @@ RUN apk add --no-cache \
 # for osm2pgrouting v2.3.7 and earlier, it is necessary to use libpqxx v6
 RUN git clone -b 6.4.8 https://github.com/jtv/libpqxx.git
 WORKDIR libpqxx
-RUN cmake . -DCMAKE_INSTALL_PREFIX=/usr -DSKIP_BUILD_TEST=ON
+# libpqxx 6 CMake files include a module that CMake 4 removed, so build it
+# with its autotools configure script instead.
+RUN ./configure --prefix=/usr --disable-documentation
 RUN make
 RUN make install
 WORKDIR ..
@@ -23,7 +25,9 @@ WORKDIR ..
 RUN git clone -b v2.3.1 https://github.com/pgRouting/osm2pgrouting.git
 WORKDIR osm2pgrouting
 
-RUN cmake -H. -Bbuild
+# osm2pgrouting declares a CMake minimum below 3.5, which CMake 4 rejects, and
+# relies on <algorithm> being included indirectly, which current GCC does not do.
+RUN cmake -H. -Bbuild -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_CXX_FLAGS="-include algorithm"
 WORKDIR build/
 RUN make
 RUN make install
