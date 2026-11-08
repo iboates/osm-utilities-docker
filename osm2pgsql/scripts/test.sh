@@ -71,6 +71,13 @@ run_test() {
         *)                         return 1 ;;
     esac
 
+    # Check the entrypoint's argument handling (URL download, passthrough of
+    # replication --server URLs, arguments containing spaces) with stubbed
+    # commands. Runs the entrypoint shipped in the image.
+    docker compose -f docker-compose.yaml run --rm \
+        --entrypoint sh osm2pgsql /data/test_entrypoint.sh /entrypoint.sh \
+        &> /dev/null || return 1
+
     # Shut down containers
     docker compose down &> /dev/null || true
 
