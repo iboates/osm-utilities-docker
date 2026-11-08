@@ -35,14 +35,25 @@ record_pushed_tag() {
   fi
 }
 
+# Versions that failed to build, test or push. Each failure is recorded and
+# the loop moves on to the next version; the script exits non-zero at the end
+# so the workflow run shows the failure instead of passing silently.
+FAILED_VERSIONS=""
+fail() {
+  echo -e "$1: \033[31m$2\033[0m"
+  FAILED_VERSIONS="$FAILED_VERSIONS $1"
+}
+
 # Check if at least one version code is provided
 if [ $# -eq 0 ]; then
   echo "Usage: $0 [--suffix <suffix>] <version1> [version2] [...]"
   exit 1
 fi
 
-wget -O data.osm.bz2 https://download.geofabrik.de/europe/andorra-latest.osm.bz2
-bzip2 -d data.osm.bz2
+if ! ./get_test_data.sh; then
+  echo "Error: could not prepare the test data (data.osm)." >&2
+  exit 1
+fi
 
 LARGEST_VERSION=$(basename $(ls -d ../dockerfiles/*/ | sort -V | tail -n 1))
 
@@ -60,65 +71,80 @@ do
 
   # Build the Docker image with the current version tag using the temporary Dockerfile
   docker build --build-arg VERSION=$VERSION --build-arg TAG=$TAG -t osm2pgrouting:$VERSION -f "$TEMP_DOCKERFILE" .
+  BUILD_STATUS=$?
+  rm -f "$TEMP_DOCKERFILE"
 
-  if [ $? -eq 0 ]; then
-    echo "Successfully built osm2pgrouting:$VERSION"
-  else
-    echo "Failed to build osm2pgrouting:$VERSION"
-    rm "$TEMP_DOCKERFILE" # Remove temporary Dockerfile if build fails
+  if [ $BUILD_STATUS -ne 0 ]; then
+    fail "$VERSION" "BUILD FAILED"
+    continue
   fi
-
-  rm "$TEMP_DOCKERFILE" # Remove temporary Dockerfile after successful build
+  echo "Successfully built osm2pgrouting:$VERSION"
 
   # Test the image we just built
   cp docker-compose.yaml docker-compose.yaml.tmp
-      sed -i "s/{{ version }}/$VERSION/g" docker-compose.yaml.tmp
-      docker compose -f docker-compose.yaml.tmp up -d
-      sleep 10
-      docker compose -f docker-compose.yaml.tmp run -v "$(pwd)":/data osm2pgrouting \
-        -d o2p \
-        -U o2p \
-        -h postgis \
-        -p 5432 \
-        -W o2p \
-        -f /data/data.osm
+  sed -i "s/{{ version }}/$VERSION/g" docker-compose.yaml.tmp
+  docker compose -f docker-compose.yaml.tmp up -d
+  # Wait for the database, then create the extensions osm2pgrouting needs:
+  # the pgrouting image does not install them in POSTGRES_DB.
+  for _ in $(seq 1 30); do
+    docker compose -f docker-compose.yaml.tmp exec -T postgis pg_isready -U o2p -h localhost > /dev/null 2>&1 && break
+    sleep 2
+  done
+  docker compose -f docker-compose.yaml.tmp exec -T postgis \
+    psql -U o2p -c "CREATE EXTENSION IF NOT EXISTS postgis; CREATE EXTENSION IF NOT EXISTS pgrouting;"
+  docker compose -f docker-compose.yaml.tmp run --rm -v "$(pwd)":/data osm2pgrouting \
+    -d o2p \
+    -U o2p \
+    -h postgis \
+    -p 5432 \
+    -W o2p \
+    -f /data/data.osm \
+    --clean
 
-        output=$(docker compose -f docker-compose.yaml.tmp exec postgis \
-                psql \
-                -U o2p \
-                -c "select count(*) from edges limit 1")
+  output=$(docker compose -f docker-compose.yaml.tmp exec -T postgis \
+          psql \
+          -U o2p \
+          -c "select count(*) from ways")
 
-        # Extract the count value from the output
-        count=$(echo "$output" | grep -o '[0-9]\+' | head -n 1) # Use head -n 1 to ensure we only get the first match
-        echo "TEST RESULT: found " $count "features"
+  # Extract the count value from the output
+  count=$(echo "$output" | grep -o '[0-9]\+' | head -n 1) # Use head -n 1 to ensure we only get the first match
+  echo "TEST RESULT: found " $count "features"
 
-        # Assuming the count is always a number or empty. If count is empty, set it to 0
-        count=${count:-0}
+  # Assuming the count is always a number or empty. If count is empty, set it to 0
+  count=${count:-0}
 
-        # If the count is greater than zero then the test passes
-        if [ "$count" -gt 0 ]; then
-          docker tag osm2pgrouting:$VERSION iboates/osm2pgrouting:$VERSION$SUFFIX
-          if docker push iboates/osm2pgrouting:$VERSION$SUFFIX; then
-            record_pushed_tag "iboates/osm2pgrouting:$VERSION$SUFFIX"
-            echo -e "$VERSION$SUFFIX: \033[32mPUSHED\033[0m"
-          else
-            echo -e "$VERSION$SUFFIX: \033[31mPUSH FAILED\033[0m"
-          fi
+  # Remove the database volume too, so the next version starts from an empty
+  # database instead of finding the rows this one imported.
+  docker compose -f docker-compose.yaml.tmp down -v
+  rm docker-compose.yaml.tmp
 
-          if [ "$LARGEST_VERSION" = "$VERSION" ]; then
-            docker tag osm2pgrouting:$VERSION iboates/osm2pgrouting:latest$SUFFIX
-            if docker push iboates/osm2pgrouting:latest$SUFFIX; then
-              record_pushed_tag "iboates/osm2pgrouting:latest$SUFFIX"
-              echo -e "latest$SUFFIX: \033[32mPUSHED\033[0m"
-            else
-              echo -e "latest$SUFFIX: \033[31mPUSH FAILED\033[0m"
-            fi
-          fi
+  # Push only if the import produced edges
+  if [ "$count" -le 0 ]; then
+    fail "$VERSION" "TEST FAILED"
+    continue
+  fi
 
-        fi
+  docker tag osm2pgrouting:$VERSION iboates/osm2pgrouting:$VERSION$SUFFIX
+  if docker push iboates/osm2pgrouting:$VERSION$SUFFIX; then
+    record_pushed_tag "iboates/osm2pgrouting:$VERSION$SUFFIX"
+    echo -e "$VERSION$SUFFIX: \033[32mPUSHED\033[0m"
+  else
+    fail "$VERSION" "PUSH FAILED"
+  fi
 
-      # Use the -f flag with docker compose down to ensure it uses the correct compose file
-      docker compose -f docker-compose.yaml.tmp down
-      rm docker-compose.yaml.tmp
+  if [ "$LARGEST_VERSION" = "$VERSION" ]; then
+    docker tag osm2pgrouting:$VERSION iboates/osm2pgrouting:latest$SUFFIX
+    if docker push iboates/osm2pgrouting:latest$SUFFIX; then
+      record_pushed_tag "iboates/osm2pgrouting:latest$SUFFIX"
+      echo -e "latest$SUFFIX: \033[32mPUSHED\033[0m"
+    else
+      fail "latest" "PUSH FAILED"
+    fi
+  fi
 
 done
+
+if [ -n "$FAILED_VERSIONS" ]; then
+  echo "Failed:$FAILED_VERSIONS"
+  exit 1
+fi
