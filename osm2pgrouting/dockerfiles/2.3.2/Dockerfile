@@ -17,6 +17,10 @@ RUN git clone -b 6.4.8 https://github.com/jtv/libpqxx.git
 WORKDIR libpqxx
 # libpqxx 6 CMake files include a module that CMake 4 removed, so build it
 # with its autotools configure script instead.
+# Its bundled config.guess/config.sub date from 2009 and predate aarch64, so
+# replace them with current copies from automake before configuring.
+RUN apk add --no-cache automake \
+ && cp /usr/share/automake-*/config.guess /usr/share/automake-*/config.sub config/
 RUN ./configure --prefix=/usr --disable-documentation
 RUN make
 RUN make install
